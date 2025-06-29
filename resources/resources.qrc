@@ -1,0 +1,45 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/icon.png</file>
+        <file>images/tabbar_message.png</file>
+        <file>images/tabbar_contact.png</file>
+        <file>images/tabbar_fav.png</file>
+        <file>images/tabbar_navi.png</file>
+        <file>images/tabbar_work.png</file>
+        <file>images/avatar_def.png</file>
+        <file>images/tabbar_contact_hover.png</file>
+        <file>images/tabbar_message_hover.png</file>
+        <file>images/tabbar_navi_hover.png</file>
+        <file>images/tabbar_work_hover.png</file>
+        <file>images/search.png</file>
+        <file>images/file_type_zip.png</file>
+        <file>images/file_type_xml.png</file>
+        <file>images/file_type_xls.png</file>
+        <file>images/file_type_word.png</file>
+        <file>images/file_type_video.png</file>
+        <file>images/file_type_unknown.png</file>
+        <file>images/file_type_text.png</file>
+        <file>images/file_type_ppt.png</file>
+        <file>images/file_type_pdf.png</file>
+        <file>images/file_type_image.png</file>
+        <file>images/file_type_html.png</file>
+        <file>images/file_type_exe.png</file>
+        <file>images/file_type_audio.png</file>
+        <file>images/mute_notification.png</file>
+        <file>images/voice_to.png</file>
+        <file>images/voice_to_2.png</file>
+        <file>images/voice_to_1.png</file>
+        <file>images/voice_from_2.png</file>
+        <file>images/voice_to_3.png</file>
+        <file>images/voice_from_3.png</file>
+        <file>images/voice_from.png</file>
+        <file>images/voice_from_1.png</file>
+        <file>images/msg_cell_video_call.png</file>
+        <file>images/msg_cell_voice_call.png</file>
+        <file>images/conversation_msg_sending.png</file>
+        <file>images/conversation_msg_sending_failure.png</file>
+        <file>images/chats_menu.png</file>
+        <file>images/chatbox_scissors.png</file>
+        <file>images/loading.gif</file>
+    </qresource>
+</RCC>

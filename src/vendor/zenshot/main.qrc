@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/">
+        <file>iconfont.ttf</file>
+        <file>style.css</file>
+        <file>translations/Chinese.qm</file>
+        <file>translations/English.qm</file>
+        <file>images/dropdown.png</file>
+        <file>images/up-arrow.png</file>
+        <file>images/down-arrow.png</file>
+        <file>images/cross32.png</file>
+        <file>images/mosaic.png</file>
+        <file>setting.css</file>
+        <file>zenshot.png</file>
+        <file>images/close_button.png</file>
+        <file>images/menu-exit.png</file>
+        <file>images/menu-setting.png</file>
+        <file>images/menu-shot.png</file>
+        <file>images/menu-ztsetting.png</file>
+        <file>images/new-item.png</file>
+        <file>images/remove-item.png</file>
+        <file>images/check.png</file>
+        <file>images/uncheck.png</file>
+        <file>zentaosettingdetail.css</file>
+        <file>zentaosettinglist.css</file>
+        <file>zentaosetting.css</file>
+        <file>zentaosubmit.css</file>
+        <file>zentaopreview.css</file>
+        <file>zentaodemand.css</file>
+        <file>zentaobug.css</file>
+        <file>images/bug-check.png</file>
+        <file>images/bug-uncheck.png</file>
+        <file>images/demand-check.png</file>
+        <file>images/demand-uncheck.png</file>
+        <file>images/failed-tip.png</file>
+        <file>images/success-tip.png</file>
+        <file>zentaotips.css</file>
+        <file>zentaosettinglistitem.css</file>
+        <file>images/item-default.png</file>
+        <file>images/cbx-down.png</file>
+    </qresource>
+</RCC>

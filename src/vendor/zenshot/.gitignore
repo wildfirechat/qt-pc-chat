@@ -1,0 +1,19 @@
+
+zenshot.pro.user*
+
+# vscode workspace file
+*.code-workspace
+.vs
+debug
+release
+*.vcxproj*
+*.sln
+ui_*.h
+.qmake.*
+*.pro.user
+*.vcxproj*
+logs
+setting.xml
+msvc_make.bat
+build
+build.sh
