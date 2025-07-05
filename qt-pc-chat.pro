@@ -594,7 +594,8 @@ INCLUDEPATH += $$PWD/src/vendor/ezviewer $$PWD/src/vendor/ezviewer/tools $$PWD/s
 
 macx: {
     LIBS += -L$$PWD/src/wfc/proto/osx -lMarsWrapper
-    QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/osx/libMarsWrapper.dylib $$OUT_PWD/)
+    EXTRA_FILES += $$PWD/src/wfc/proto/linux/sw64/libMarsWrapper.so
+    QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/osx/libMarsWrapper.dylib $$DESTDIR/)
 }
 
 unix:!macx {
@@ -602,29 +603,29 @@ unix:!macx {
     contains(QT_ARCH, x86_64) {
         message("ARCH: $$QT_ARCH")
         LIBS += -L$$PWD/src/wfc/proto/linux/x86_64 -lMarsWrapper
-        # 自动复制DLL到输出目录（可选）
-        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/x86_64/*.so $$OUT_PWD/)
+        EXTRA_FILES += $$PWD/src/wfc/proto/linux/x86_64/libMarsWrapper.so
+        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/x86_64/libMarsWrapper.so $$DESTDIR/)
     }
     # 判断是否为 ARM64 架构（兼容多种表示方式）
     contains(QMAKE_TARGET.arch, arm64|aarch64) {
         message("ARCH: $$QT_ARCH")
         LIBS += -L$$PWD/src/wfc/proto/linux/arm64 -lMarsWrapper
-        # 自动复制DLL到输出目录（可选）
-        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/arm64/*.so $$OUT_PWD/)
+        EXTRA_FILES += $$PWD/src/wfc/proto/linux/arm64/libMarsWrapper.so
+        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/arm64/libMarsWrapper.so $$DESTDIR/)
     }
     # 判断是否为 LONG64 架构（兼容多种表示方式）
     contains(QMAKE_TARGET.arch, loongarch64) {
         message("ARCH: $$QT_ARCH")
         LIBS += -L$$PWD/src/wfc/proto/linux/loongarch64 -lMarsWrapper
-        # 自动复制DLL到输出目录（可选）
-        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/loongarch64/*.so $$OUT_PWD/)
+        EXTRA_FILES += $$PWD/src/wfc/proto/linux/loongarch64/libMarsWrapper.so
+        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/loongarch64/libMarsWrapper.so $$DESTDIR/)
     }
     # 判断是否为 SW64 架构（兼容多种表示方式）
     contains(QMAKE_TARGET.arch, sw_64) {
         message("ARCH: $$QT_ARCH")
         LIBS += -L$$PWD/src/wfc/proto/linux/sw64 -lMarsWrapper
-        # 自动复制DLL到输出目录（可选）
-        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/sw64/*.so $$OUT_PWD/)
+        EXTRA_FILES += $$PWD/src/wfc/proto/linux/sw64/libMarsWrapper.so
+        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/linux/sw64/libMarsWrapper.so $$DESTDIR/)
     }
 }
 
@@ -632,19 +633,15 @@ win32 {
     message("ARCH: $$QT_ARCH")
     # 判断是否为 64位 架构
     contains(QT_ARCH, x86_64) {
-        # 库文件路径
         LIBS += -L$$PWD/src/wfc/proto/windows/x64 -lMarsWrapper
-
-        # 自动复制DLL到输出目录（可选）
-        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/windows/x64/*.dll $$OUT_PWD/)
+        EXTRA_FILES += $$PWD/src/wfc/proto/windows/x64/MarsWrapper.dll
+        QMAKE_POST_LINK += $$quote(copy /Y $$PWD/src/wfc/proto/windows/x64/MarsWrapper.dll $$DESTDIR/)
     }
     # 判断是否为 32位 架构
     contains(QT_ARCH, x86_32) {
-        # 库文件路径
         LIBS += -L$$PWD/src/wfc/proto/windows/win32 -lMarsWrapper
-
-        # 自动复制DLL到输出目录（可选）
-        QMAKE_POST_LINK += $$quote(cp $$PWD/src/wfc/proto/windows/win32/*.dll $$OUT_PWD/)
+        EXTRA_FILES += $$PWD/src/wfc/proto/windows/win32/MarsWrapper.dll
+        QMAKE_POST_LINK += $$quote(copy /Y $$PWD/src/wfc/proto/windows/win32/MarsWrapper.dll $$DESTDIR/)
     }
 }
 
