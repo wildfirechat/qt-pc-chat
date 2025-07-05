@@ -18,6 +18,7 @@
 #include "../message/UnknownMessageContent.h"
 #include "../message/CallStartMessageContent.h"
 #include "../message/AddGroupMemberNotificationContent.h"
+#include "../message/RejectJoinGroupNotificationContent.h"
 #include "../message/CreateGroupNotificationContent.h"
 #include "../message/DismissGroupNotificationContent.h"
 #include "../message/ImageMessageContent.h"

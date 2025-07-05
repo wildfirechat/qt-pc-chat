@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string>
 #include <list>
+#include <map>
 
 #include "../vendor/rapidjson/rapidjson.h"
 #include "../vendor/rapidjson/writer.h"
@@ -53,6 +54,7 @@ public:
     bool getValue(const std::string &tag, std::string &ret);
     bool getValue(const std::string &tag, Serializable &ret);
     bool getValue(const std::string &tag, std::list<std::string> &ret);
+    bool getValue(const std::string &tag, std::map<std::string, int> &ret);
     
     bool isParsed() const { return parsed; }
 private:

@@ -121,6 +121,7 @@ SOURCES += \
     src/wfc/message/PTextMessageContent.cpp \
     src/wfc/message/QuitGroupNotificationContent.cpp \
     src/wfc/message/RecallMessageContent.cpp \
+    src/wfc/message/RejectJoinGroupNotificationContent.cpp \
     src/wfc/message/SoundMessageContent.cpp \
     src/wfc/message/StickerMessageContent.cpp \
     src/wfc/message/TextMessageContent.cpp \
@@ -343,6 +344,7 @@ HEADERS += \
     src/wfc/message/PTextMessageContent.h \
     src/wfc/message/QuitGroupNotificationContent.h \
     src/wfc/message/RecallMessageContent.h \
+    src/wfc/message/RejectJoinGroupNotificationContent.h \
     src/wfc/message/SoundMessageContent.h \
     src/wfc/message/StickerMessageContent.h \
     src/wfc/message/TextMessageContent.h \

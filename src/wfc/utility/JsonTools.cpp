@@ -437,6 +437,19 @@ bool JsonParser::getValue(const std::string &tag, std::list<std::string> &ret) {
     return false;
 }
 
+bool JsonParser::getValue(const std::string &tag, std::map<std::string, int> &ret) {
+    if (parsed && value.HasMember(tag)) {
+        const Value &v = value[tag];
+        if (v.IsObject()) {
+            for (auto it = v.MemberBegin(); it != v.MemberEnd(); ++it) {
+                ret[it->name.GetString()] = it->value.GetInt();
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 JsonParser::JsonParser(const std::string &json) :value(), parsed(false) {
     if (value.Parse(json).HasParseError()) {
         printf("\nParsing to document failure(%s).\n", json.c_str());

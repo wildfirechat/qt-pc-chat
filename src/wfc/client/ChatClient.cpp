@@ -1,5 +1,5 @@
 #include "ChatClient.h"
-#include "../proto/WFClient.h"
+#include "../proto/include/WFClient.h"
 #include <mutex>
 #include "../utility/JsonTools.h"
 
@@ -322,6 +322,7 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
 	registerMessage(&TextMessageContent::sPrototype);
     registerMessage(&CallStartMessageContent::sPrototype);
     registerMessage(&AddGroupMemberNotificationContent::sPrototype);
+    registerMessage(&RejectJoinGroupNotificationContent::sPrototype);
     registerMessage(&CreateGroupNotificationContent::sPrototype);
     registerMessage(&DismissGroupNotificationContent::sPrototype);
     registerMessage(&ImageMessageContent::sPrototype);
