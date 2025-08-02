@@ -9,6 +9,7 @@
 #include "../../config.h"
 #include "../mainwindow/mainwindow.h"
 #include <QSettings>
+#include <QDesktopServices>
 
 LoginWidget::LoginWidget(QWidget *parent)
     : QWidget(parent), windowWidth(400)
@@ -237,7 +238,7 @@ void LoginWidget::updateLoginType() {
 }
 
 void LoginWidget::onDownloadBtnPressed() {
-
+    QDesktopServices::openUrl(QUrl("https://docs.wildfirechat.cn/demo/"));
 }
 
 void LoginWidget::onSwitchBtnPressed() {
