@@ -378,6 +378,7 @@ extern "C" PROTOWRAPPER_API const char* WFCAPI getAppPath(size_t *retlen);
 
 extern "C" PROTOWRAPPER_API void WFCAPI getAuthorizedMediaUrl(long long messageUid, int mediaType, const char *cmediaPath, size_t mediaPath_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
 
+extern "C" PROTOWRAPPER_API void WFCAPI sendConferenceRequest(long long sessionId, const char *croomId, size_t roomId_len, const char *crequest, size_t request_len, bool advance, const char *cdata, size_t data_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 }
 
 #endif /* WFClient_h */

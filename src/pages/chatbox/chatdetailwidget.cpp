@@ -31,6 +31,7 @@
 #include "emojdialog.h"
 #include "atmemberdelegate.h"
 #include "atmemberlistview.h"
+#include "../voip/singlecallwebviewwidget.h"
 #include <QMediaPlayer>
 
 
@@ -190,10 +191,21 @@ void ChatDetailWidget::setupUI()
     capturerButton->setStyleSheet("QPushButton { border-radius: 15px; }"
                                "QPushButton:hover { background-color: #e9e9e9; }");
 
-    
+    voiceCallButton = new QPushButton("📞", this);
+    voiceCallButton->setFixedSize(30, 30);
+    voiceCallButton->setStyleSheet("QPushButton { border-radius: 15px; }"
+                               "QPushButton:hover { background-color: #e9e9e9; }");
+
+    videoCallButton = new QPushButton("📷", this);
+    videoCallButton->setFixedSize(30, 30);
+    videoCallButton->setStyleSheet("QPushButton { border-radius: 15px; }"
+                               "QPushButton:hover { background-color: #e9e9e9; }");
+
     toolLayout->addWidget(fileButton);
     toolLayout->addWidget(emojiButton);
     toolLayout->addWidget(capturerButton);
+    toolLayout->addWidget(voiceCallButton);
+    toolLayout->addWidget(videoCallButton);
     toolLayout->addStretch();
     
     // 输入框和发送按钮
@@ -272,6 +284,8 @@ void ChatDetailWidget::setupUI()
 #endif // NZENTAO_VER_
         starter->init();
     });
+    connect(voiceCallButton, &QPushButton::clicked, [this]() {startCall(true);});
+    connect(videoCallButton, &QPushButton::clicked, [this]() {startCall(true);});
 
     connect(chatDelegate, &ChatDelegate::avatarRightClicked, this, &ChatDetailWidget::onAvatarRightClicked);
     connect(chatDelegate, &ChatDelegate::messageContentClicked, this, &ChatDetailWidget::onMessageContentClicked);
@@ -530,6 +544,11 @@ void ChatDetailWidget::handlePaste() {
         QList<QUrl> urls = mimeData->urls();
         qDebug() << "粘贴的URL:" << urls;
     }
+}
+
+void ChatDetailWidget::startCall(bool audioOnly) {
+    SingleCallWebViewWidget *callWidget = new SingleCallWebViewWidget();
+    callWidget->show();
 }
 
 #define LOAD_REMOTE_MESSAGE_DATA_TYPE 1

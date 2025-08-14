@@ -1,4 +1,4 @@
-QT       += core gui network svg xml multimedia
+QT       += core gui network svg xml multimedia webenginewidgets webchannel
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -90,6 +90,8 @@ SOURCES += \
     src/pages/utility/badgebutton.cpp \
     src/pages/utility/defaultportraitfactory.cpp \
     src/pages/utility/loadingdialog.cpp \
+    src/pages/voip/callwebinterface.cpp \
+    src/pages/voip/singlecallwebviewwidget.cpp \
     src/tools/imageloader.cpp \
     src/tools/timeformatter.cpp \
     src/vendor/ezviewer/imageviewer_config.cpp \
@@ -312,6 +314,8 @@ HEADERS += \
     src/pages/utility/badgebutton.h \
     src/pages/utility/defaultportraitfactory.h \
     src/pages/utility/loadingdialog.h \
+    src/pages/voip/callwebinterface.h \
+    src/pages/voip/singlecallwebviewwidget.h \
     src/tools/imageloader.h \
     src/tools/timeformatter.h \
     src/vendor/ezviewer/imageviewer_config.h \

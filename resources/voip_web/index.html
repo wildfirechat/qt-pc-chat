@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Web与Qt交互</title>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+</head>
+<body>
+    <h1>Web与Qt双向交互示例</h1>
+    <input type="text" id="inputMsg" placeholder="输入消息发送给Qt">
+    <button onclick="sendToQt()">发送给Qt</button>
+    <div id="log"></div>
+
+    <script>
+    window.onload = function() {
+        // 1. 初始化WebChannel，连接到Qt的交互对象
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            // 获取Qt注册的对象（名称与Qt端的registerObject一致）
+            window.qtInterface = channel.objects.qtInterface;
+
+            // 2. 监听Qt发送的信号（Qt端的sendToWeb信号）
+            qtInterface.sendToWeb.connect(function(message) {
+                document.getElementById("log").innerText = "收到Qt消息：" + message;
+            });
+            qtInterface.startCall.connect(function(conversationType, targetId, line, receivers, audioOnly) {
+                document.getElementById("log").innerText = "收到Qt消息：sendMessageResult " + errorCode;
+            });
+            qtInterface.sendMessageResult.connect(function(requestId, errorCode, messageUid, timestamp) {
+                //根据下面sendMessage方法里的requestId的用法，找到callback进行回调
+                document.getElementById("log").innerText = "收到Qt消息：sendMessageResult " + errorCode;
+            });
+            qtInterface.sendConferenceResponse.connect(function(requestId, errorCode, response) {
+                //根据下面sendConferenceRequest方法里的requestId的用法，找到callback进行回调
+                document.getElementById("log").innerText = "收到Qt消息：sendConferenceResponse " + errorCode;
+            });
+            qtInterface.onConferenceEvent.connect(function(event) {
+                document.getElementById("log").innerText = "收到Qt消息：onConferenceEvent " + event;
+            });
+
+            //3. 通知Qt 已经准备好
+            qtInterface.onReady();
+        });
+    };
+
+    // 3. 网页发送消息给Qt（调用Qt交互对象的fromWeb方法）
+    function sendToQt() {
+        const msg = document.getElementById("inputMsg").value;
+        if (window.qtInterface) {
+            qtInterface.fromWeb(msg).then(result => {
+                // 成功获取返回值
+                document.getElementById("log").textContent = result;
+            })
+            .catch(error => {
+                // 处理错误
+                console.error("调用失败:", error);
+                document.getElementById("log").textContent = error;
+            });
+        }
+    }
+
+    function sendConferenceRequest(sessionId, roomId, request, advance, data, successCallback, errorCallback) {
+        if (window.qtInterface) {
+            //发送request和消息时，响应是异步通过sendConferenceResponse和sendMessageResult返回的，需要requestId来找到对应的请求。
+            //这里需要生成一个requestId，然后记住callback，等收到相应后根据requestId找到对应的callback
+            requestId = 0;
+            qtInterface.sendConferenceRequest(requestId, sessionId, roomId, request, advance, data);
+        }
+    }
+
+    function sendMessage(conversationType, target, line, content, toUsers, successCallback, errorCallback) {
+        if (window.qtInterface) {
+            //发送request和消息时，响应是异步通过sendConferenceResponse和sendMessageResult返回的，需要requestId来找到对应的请求。
+            //这里需要生成一个requestId，然后记住callback，等收到相应后根据requestId找到对应的callback
+            requestId = 0;
+            qtInterface.sendMessage(conversationType, target, line, content, toUsers);
+        }
+    }
+
+    function onCallStateChanged(callId, newState) {
+        if (window.qtInterface) {
+            qtInterface.onCallStateChanged(callId, newState);
+        }
+    }
+
+    function getUserInfo(userId) {
+        if (window.qtInterface) {
+            qtInterface.getUserInfo(userId).then(result => {
+                //把用户信息反序列化为用户信息
+            })
+            .catch(error => {
+                // 处理错误
+                console.error("调用失败:", error);
+            });
+        }
+    }
+
+    function getGroupInfo(groupId) {
+        if (window.qtInterface) {
+            qtInterface.getGroupInfo(groupId).then(result => {
+                //把群组信息反序列化为用户信息
+            })
+            .catch(error => {
+                // 处理错误
+                console.error("调用失败:", error);
+            });
+        }
+    }
+    </script>
+</body>
+</html>

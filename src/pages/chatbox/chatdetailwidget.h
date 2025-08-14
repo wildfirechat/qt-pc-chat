@@ -78,6 +78,7 @@ private:
     bool fetchEditorContents(QTextEdit* textEdit, QList<QImage> &images, QStringList &filePaths, QStringList &texts);
     void handlePaste();
     void loadHistoryMessages();
+    void startCall(bool audioOnly);
 
     QSplitter *inputSplitter;
 
@@ -97,6 +98,8 @@ private:
     QPushButton *fileButton;
     QPushButton *emojiButton;
     QPushButton *capturerButton;
+    QPushButton *voiceCallButton;
+    QPushButton *videoCallButton;
 
     EmojDialog *emojDialog;
 

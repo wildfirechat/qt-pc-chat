@@ -84,6 +84,10 @@ void WFCAPI client_channelInfo_update_callback(const char *cchannelInfo, size_t 
     ChatClient::Instance()->onChannelInfoUpdated(serializableFromJsonList<ChannelInfo>(std::string(cchannelInfo, channelInfo_len)));
 }
 
+static ConferenceEventListener *gConferenceEventListener = NULL;
+void WFCAPI client_conference_event_callback(const char *eventData, size_t eventData_len) {
+    ChatClient::Instance()->onConferenceEvent(std::string(eventData, eventData));
+}
 
 static void WFCAPI client_genernal_void_success_callback(void *pObj, int dataType) {
     if(pObj) {
@@ -275,6 +279,11 @@ void ChatClient::setChannelInfoUpdateListener(ChannelInfoUpdateListener *listene
 	gChannelInfoUpdateListener = listener;
 }
 
+void ChatClient::setConferenceEventListener(ConferenceEventListener *listener) {
+    gConferenceEventListener = listener;
+}
+
+
 void ChatClient::setDefaultPortraitProvider(DefaultPortraitProvider *provider)
 {
     groupPortraitProvider = provider;
@@ -308,7 +317,8 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
     WFClient::setFriendRequestListener(client_friendRequest_update_callback);
     WFClient::setSettingUpdateListener(client_user_setting_update_callback);
     WFClient::setChannelInfoUpdateListener(client_channelInfo_update_callback);
-    
+    WFClient::setConferenceEventListener(client_conference_event_callback);
+
     return WFClient::connect2Server(userId.c_str(), userId.size(), token.c_str(), token.size());
 }
 
@@ -1292,6 +1302,10 @@ void ChatClient::getAuthorizedMediaUrl(long long messageId, int mediaType, const
     WFClient::getAuthorizedMediaUrl(messageId, mediaType, mediaPath.c_str(), mediaPath.size(), client_genernal_string_success_callback, client_genernal_string_error_callback, callback, callbackPara);
 }
 
+void ChatClient::sendConferenceRequest(long long sessionId, const std::string &roomId, const std::string &request, bool advance, const std::string &data, GeneralStringCallback *callback, int objectDataType) {
+    WFClient::sendConferenceRequest(sessionId, roomId.c_str(), roomId.size(), request.c_str(), request.size(), advance, data.c_str(), data.size(), client_genernal_string_success_callback, client_genernal_string_error_callback, callback, objectDataType);
+}
+
 void ChatClient::onConnectionStatusChanged(ConnectionStatus status) {
 #if IS_QT
     emit connectionStatusChanged(status);
@@ -1391,6 +1405,15 @@ void ChatClient::onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo)
 #endif
     if (gChannelInfoUpdateListener) {
         gChannelInfoUpdateListener->onChannelInfoUpdated(channelInfo);
+    }
+}
+
+void ChatClient::onConferenceEvent(const std::string &event) {
+#if IS_QT
+    emit conferenceEvent(event);
+#endif
+    if (gConferenceEventListener) {
+        gConferenceEventListener->onConferenceEvent(event);
     }
 }
 
