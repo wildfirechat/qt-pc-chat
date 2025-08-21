@@ -24,6 +24,7 @@ using namespace wfchatjson;
 namespace WFCLib {
 
 class Serializable;
+class CallParticipant;
 extern std::string base64Decode(const std::string &base64str);
 extern std::string base64Encode(const std::string &str);
 
@@ -55,7 +56,8 @@ public:
     bool getValue(const std::string &tag, Serializable &ret);
     bool getValue(const std::string &tag, std::list<std::string> &ret);
     bool getValue(const std::string &tag, std::map<std::string, int> &ret);
-    
+    bool getValue(const std::string &tag, std::list<CallParticipant> &ret);
+
     bool isParsed() const { return parsed; }
 private:
     Document value;
@@ -80,7 +82,8 @@ public:
     void setValue(const std::string &tag, const std::string &value);
     void setValue(const std::string &tag, const Serializable *pValue);
     void setValue(const std::string &tag, const std::list<std::string> &value);
-    
+    void setValue(const std::string &tag, const std::list<CallParticipant> &value);
+
     std::string build();
 private:
     StringBuffer sb;

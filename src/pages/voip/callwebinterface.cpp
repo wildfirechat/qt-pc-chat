@@ -21,13 +21,17 @@ void CallWebInterface::sendConferenceRequest(int requestId, long long sessionId,
 }
 
 QString CallWebInterface::sendMessage(int requestId, int conversationType, const QString &target, int line, const QString &content, const QList<QString> toUsers) {
-    WFCLib::TextMessageContent textContent;
-    textContent.content = "Hello";
+    WFCLib::MessagePayload payload;
+    payload.fromJson(content.toStdString());
+    WFCLib::MessageContent *msgCont = WFCLib::ChatClient::Instance()->getContent(payload);
+
     std::list<std::string> stdToUsers;
     for(auto t : toUsers) {
         stdToUsers.push_back(t.toStdString());
     }
-    WFCLib::Message message = WFCLib::ChatClient::Instance()->sendMessage(mConversation, textContent, stdToUsers, 0, this, requestId);
+    WFCLib::Message message = WFCLib::ChatClient::Instance()->sendMessage(mConversation, *msgCont, stdToUsers, 0, this, requestId);
+    delete msgCont;
+
     return QString::fromStdString(message.toJson());
 }
 
@@ -50,6 +54,8 @@ void CallWebInterface::onSuccess(int dataType, const std::string &value)
     emit sendConferenceResponse(dataType, 0, QString::fromStdString(value));
 }
 
+//onFailure有可能是发送conferenceRequet返回的错误，也有可能是sendMessage返回的错误。
+//区分是在请求的时候dataType做了处理，一个为正值，一个为负值，这样就区分开了。
 void CallWebInterface::onFailure(int dataType, int errorCode)
 {
     if(dataType>0) {

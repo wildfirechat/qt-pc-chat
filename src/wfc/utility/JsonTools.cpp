@@ -7,6 +7,7 @@
 //
 
 #include "JsonTools.h"
+#include "../model/callparticipant.h"
 
 namespace WFCLib {
 
@@ -450,6 +451,25 @@ bool JsonParser::getValue(const std::string &tag, std::map<std::string, int> &re
     return false;
 }
 
+bool JsonParser::getValue(const std::string &tag, std::list<CallParticipant> &ret) {
+    if (parsed && value.HasMember(tag)) {
+        const Value &v = value[tag];
+        if (v.IsArray()) {
+            for (int i = 0; i < v.Size(); i++) {
+                const Value &t = v[i];
+                if (t.IsString()) {
+                    CallParticipant cp;
+                    cp.fromJson(t.GetString());
+                    ret.push_back(cp);
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+
 JsonParser::JsonParser(const std::string &json) :value(), parsed(false) {
     if (value.Parse(json).HasParseError()) {
         printf("\nParsing to document failure(%s).\n", json.c_str());
@@ -543,6 +563,15 @@ void JsonBuilder::setValue(const std::string &tag, const std::list<std::string> 
     writer.StartArray();
     for (std::list<std::string>::const_iterator it = value.begin(); it != value.end(); ++it) {
         writer.String(*it);
+    }
+    writer.EndArray();
+}
+
+void JsonBuilder::setValue(const std::string &tag, const std::list<CallParticipant> &value) {
+    writer.String(tag);
+    writer.StartArray();
+    for (std::list<CallParticipant>::const_iterator it = value.begin(); it != value.end(); ++it) {
+        writer.String(it->toJson());
     }
     writer.EndArray();
 }

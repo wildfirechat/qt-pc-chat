@@ -25,6 +25,9 @@
             qtInterface.startCall.connect(function(conversationType, targetId, line, receivers, audioOnly) {
                 document.getElementById("log").innerText = "收到Qt消息：sendMessageResult " + errorCode;
             });
+            qtInterface.receiveCallMessage.connect(function(conversationType, targetId, line, content) {
+                document.getElementById("log").innerText = "收到Qt消息：receive call message " + content;
+            });
             qtInterface.sendMessageResult.connect(function(requestId, errorCode, messageUid, timestamp) {
                 //根据下面sendMessage方法里的requestId的用法，找到callback进行回调
                 document.getElementById("log").innerText = "收到Qt消息：sendMessageResult " + errorCode;

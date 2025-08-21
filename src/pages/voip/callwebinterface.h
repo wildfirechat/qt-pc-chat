@@ -24,6 +24,7 @@ signals:
     // 下面是发送给网页的请求.
     void sendToWeb(const QString &message);
     void startCall(int conversationType, const QString &targetId, int line, const QList<QString> &receivers, bool audioOnly);
+    void receiveCallMessage(int conversationType, const QString &targetId, int line, const QString &content);
     void sendMessageResult(int requestId, int errorcode, long long messageUid, long long timestamp);
     void sendConferenceResponse(int requestId, int errorCode, const QString &response);
     void onConferenceEvent(const QString &event);

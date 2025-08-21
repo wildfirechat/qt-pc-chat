@@ -332,6 +332,7 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
 	registerMessage(&TextMessageContent::sPrototype);
     registerMessage(&CallStartMessageContent::sPrototype);
     registerMessage(&AddGroupMemberNotificationContent::sPrototype);
+    registerMessage(&CallAddParticipantMessageContent::sPrototype);
     registerMessage(&RejectJoinGroupNotificationContent::sPrototype);
     registerMessage(&CreateGroupNotificationContent::sPrototype);
     registerMessage(&DismissGroupNotificationContent::sPrototype);

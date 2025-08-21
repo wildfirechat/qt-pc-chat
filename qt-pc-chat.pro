@@ -100,6 +100,7 @@ SOURCES += \
     src/vendor/qrcode/qrcodegen.cpp \
     src/wfc/client/ChatClient.cpp \
     src/wfc/message/AddGroupMemberNotificationContent.cpp \
+    src/wfc/message/CallAddParticipantMessageContent.cpp \
     src/wfc/message/CallStartMessageContent.cpp \
     src/wfc/message/ChangeGroupNameNotificationContent.cpp \
     src/wfc/message/ChangeGroupPortraitNotificationContent.cpp \
@@ -143,6 +144,7 @@ SOURCES += \
     src/wfc/model/UnreadCount.cpp \
     src/wfc/model/UserInfo.cpp \
     src/wfc/model/UserSettingEntry.cpp \
+    src/wfc/model/callparticipant.cpp \
     src/wfc/utility/JsonTools.cpp \
     src/wfc/utility/Serializable.cpp \
     src/vendor/zenshot/commands/addcommand.cpp \
@@ -325,6 +327,7 @@ HEADERS += \
     src/wfc/client/ChatClient.h \
     src/wfc/enum/WFEnums.h \
     src/wfc/message/AddGroupMemberNotificationContent.h \
+    src/wfc/message/CallAddParticipantMessageContent.h \
     src/wfc/message/CallStartMessageContent.h \
     src/wfc/message/ChangeGroupNameNotificationContent.h \
     src/wfc/message/ChangeGroupPortraitNotificationContent.h \
@@ -368,6 +371,7 @@ HEADERS += \
     src/wfc/model/UnreadCount.h \
     src/wfc/model/UserInfo.h \
     src/wfc/model/UserSettingEntry.h \
+    src/wfc/model/callparticipant.h \
     src/wfc/proto/include/WFClient.h \
     src/wfc/utility/JsonTools.h \
     src/wfc/utility/Serializable.h \
