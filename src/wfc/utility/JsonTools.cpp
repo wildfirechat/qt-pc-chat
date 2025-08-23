@@ -7,6 +7,8 @@
 //
 
 #include "JsonTools.h"
+#include "../model/ChannelMenu.h"
+#include "../model/UserOnlineState.h"
 
 namespace WFCLib {
 
@@ -328,6 +330,41 @@ bool getValue(const Value &value, const std::string &tag, std::list<std::string>
     return false;
 }
 
+bool getValue(const Value &value, const std::string &tag, std::list<ChannelMenu> &ret) {
+    if (value.HasMember(tag)) {
+        const Value &v = value[tag];
+        if (v.IsArray()) {
+            for (int i = 0; i < v.Size(); i++) {
+                const Value &t = v[i];
+                if (v.IsObject()) {
+                    ChannelMenu subMenu;
+                    subMenu.Unserialize(&v);
+                    ret.push_back(subMenu);
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool getValue(const Value &value, const std::string &tag, std::list<ClientState> &ret) {
+    if (value.HasMember(tag)) {
+        const Value &v = value[tag];
+        if (v.IsArray()) {
+            for (int i = 0; i < v.Size(); i++) {
+                const Value &t = v[i];
+                if (v.IsObject()) {
+                    ClientState subMenu;
+                    subMenu.Unserialize(&v);
+                    ret.push_back(subMenu);
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
 
 bool JsonParser::getValue(const std::string &tag, int &ret) {
     if (parsed && value.HasMember(tag)) {
@@ -459,29 +496,6 @@ JsonParser::JsonParser(const std::string &json) :value(), parsed(false) {
 }
 
 JsonParser::~JsonParser() { }
-
-std::list<std::string> parseStringList(const std::string &jsonListStr) {
-    std::list<std::string> result;
-    
-    Document document;
-    if (document.Parse(jsonListStr).HasParseError()) {
-        printf("\nParsing to document failure(%s).\n", jsonListStr.c_str());
-        return result;
-    }
-    
-    if (document.IsArray()) {
-        for (int i = 0; i < document.Size(); i++) {
-            const Value& object = document[i];
-            
-            if (object.IsString()) {
-                result.push_back(object.GetString());
-            }
-        }
-    }
-    
-    return result;
-}
-
 
 void JsonBuilder::setValue(const std::string &tag, int value) {
     if (value) {

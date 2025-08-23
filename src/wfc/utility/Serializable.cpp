@@ -18,6 +18,7 @@ using namespace wfchatjson;
 
 namespace WFCLib {
 bool Serializable::fromJson(std::string jsonStr) {
+    if(jsonStr.empty()) return false;
     Document document;
     if (document.Parse(jsonStr).HasParseError()) {
         printf("\nParsing to document failure(%s).\n", jsonStr.c_str());

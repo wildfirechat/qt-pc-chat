@@ -32,12 +32,16 @@ enum ConversationType {
 - SearchUserType_Name_Mobile: 精确匹配name和电话
 - SearchUserType_Name: 精确匹配name
 - SearchUserType_Mobile: 精确匹配电话
+- SearchUserType_UserId: 精确匹配用户ID
+- SearchUserType_Name_Mobile_UserId: 精确匹配name、电话和用户ID
 */
 enum SearchUserType {
     SearchUserType_General,
     SearchUserType_Name_Mobile,
     SearchUserType_Name,
-    SearchUserType_Mobile
+    SearchUserType_Mobile,
+    SearchUserType_UserId,
+    SearchUserType_Name_Mobile_UserId
 };
 
 /**
@@ -100,7 +104,9 @@ enum ModifyGroupInfoType {
     Modify_Group_Mute = 3,
     Modify_Group_JoinType = 4,
     Modify_Group_PrivateChat = 5,
-    Modify_Group_Searchable = 6
+    Modify_Group_Searchable = 6,
+    Modify_Group_History_Message = 7,
+    Modify_Group_Max_Member_Count = 8
 };
 
 
@@ -371,5 +377,58 @@ enum MessageContentPersistFlag {
     PersistFlag_PERSIST_AND_COUNT = 3,
     PersistFlag_TRANSPARENT = 4,
 };
+
+
+enum FileRecordOrder {
+    FileRecordOrder_TIME_DESC = 0,
+    FileRecordOrder_TIME_ASC = 1,
+    FileRecordOrder_SIZE_DESC = 2,
+    FileRecordOrder_SIZE_ASC = 3,
+};
+
+enum PlatformType {
+    PlatformType_UNSET = 0,
+    PlatformType_iOS = 1,
+    PlatformType_Android = 2,
+    PlatformType_Windows = 3,
+    PlatformType_OSX = 4,
+    PlatformType_WEB = 5,
+    PlatformType_WX = 6,
+    PlatformType_Linux = 7,
+    PlatformType_iPad = 8,
+    //Android pad
+    PlatformType_APad = 9,
+    PlatformType_Harmony = 10,
+    PlatformType_HarmonyPad = 11,
+    PlatformType_HarmonyPC = 12
+} ;
+
+enum DisableSearchMask {
+    DisableSearch_DisplayName_Mask = 1,
+    DisableSearch_Name_Mask = 2,
+    DisableSearch_Mobile_Mask = 4,
+    DisableSearch_UserId_Mask = 8,
+};
+
+enum UserSearchUserType {
+    UserSearchUserType_All,
+    UserSearchUserType_Only_User,
+    UserSearchUserType_Only_Robot
+};
+
+/**
+ 在双网环境中，获取当前连接的网络类型。仅当长连接建立时是准确的。如果长连接未建立，此值为上一次长连接建立时的值
+
+ - kConnectedNetworkType_Main 连接到主网络
+ - kConnectedNetworkType_Backup 连接到备网络
+ - kConnectedNetworkType_Unknown 未知
+
+ */
+enum ConnectedNetworkType {
+    kConnectedNetworkType_Main = 1,
+    kConnectedNetworkType_Unknown = 0,
+    kConnectedNetworkType_Backup = -1,
+};
+
 };
 #endif /* WFEnums_h */

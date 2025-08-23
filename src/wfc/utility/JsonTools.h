@@ -24,6 +24,8 @@ using namespace wfchatjson;
 namespace WFCLib {
 
 class Serializable;
+class ChannelMenu;
+class ClientState;
 extern std::string base64Decode(const std::string &base64str);
 extern std::string base64Encode(const std::string &str);
 
@@ -36,7 +38,8 @@ extern bool getValue(const Value &value, const std::string &tag, bool &ret);
 extern bool getValue(const Value &value, const std::string &tag, std::string &ret);
 extern bool getValue(const Value &value, const std::string &tag, Serializable &ret);
 extern bool getValue(const Value &value, const std::string &tag, std::list<std::string> &ret);
-
+extern bool getValue(const Value &value, const std::string &tag, std::list<ChannelMenu> &ret);
+extern bool getValue(const Value &value, const std::string &tag, std::list<ClientState> &ret);
 
 class JsonParser {
 public:
@@ -86,9 +89,6 @@ private:
     StringBuffer sb;
     PrettyWriter<StringBuffer> writer;
 };
-
-
-extern std::list<std::string> parseStringList(const std::string &json);
 
 };
 #endif /* JsonTools_hpp */

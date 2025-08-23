@@ -12,6 +12,9 @@
 #include "../model/ChatroomInfo.h"
 #include "../model/ChannelInfo.h"
 #include "../model/Conversation.h"
+#include "../model/UserOnlineState.h"
+#include "../model/DomainInfo.h"
+#include "../model/FileRecord.h"
 #include "../message/TextMessageContent.h"
 #include "../message/MessagePayload.h"
 #include "../message/Message.h"
@@ -43,27 +46,14 @@
 #include "../message/GroupSetManagerNotificationContent.h"
 #include "../message/GroupJoinTypeNotificationContent.h"
 
-#ifndef IS_QT
 
-#if defined(QT_VERSION)
-#define IS_QT 1
-#else
-#define IS_QT 0
-#endif
-
-#if !IS_QT
-#define IS_QT 1
-#endif
-
-#endif
-
-#if IS_QT
+#if WF_QT
 #include <QObject>
 #include <QMetaType>
 #endif
 
 
-#if IS_QT
+#if WF_QT
 // 如果是结构体，还需要提供元对象信息
 Q_DECLARE_METATYPE(WFCLib::ConversationInfo);
 Q_DECLARE_METATYPE(WFCLib::Conversation);
@@ -331,18 +321,27 @@ public:
     virtual ~DefaultPortraitProvider() {}
 };
 
-#if IS_QT
+typedef std::function<void ()> VoidSuccessFunction;
+typedef std::function<void (const std::string &val)> StringSuccessFunction;
+typedef std::function<void (int errorcode)> ErrorFunction;
+
+template <typename T>
+struct Func {
+    typedef std::function<void(const std::list<T>)> modelListFunction;
+};
+
+#if WF_QT
 class ChatClient : public QObject
 #else
 class ChatClient
 #endif
 {
-#if IS_QT
+#if WF_QT
     Q_OBJECT
 #endif
 
 
-#if IS_QT
+#if WF_QT
 signals:
     void connectionStatusChanged(ConnectionStatus status);
     void receiveMessages(const std::list<Message> &messages, bool hasMore);
@@ -396,28 +395,28 @@ public:
 	void setUserInfoUpdateListener(UserInfoUpdateListener *listener);
 
 	/**
-	设置群組信息變更监听，在connect之前调用
+    设置群組信息变更监听，在connect之前调用
 
 	@param listener 接受消息监听
 	*/
 	void setGroupInfoUpdateListener(GroupInfoUpdateListener *listener);
 
 	/**
-	设置群組成員信息變更监听，在connect之前调用
+    设置群众成员信息变更监听，在connect之前调用
 
 	@param listener 接受消息监听
 	*/
 	void setGroupMemberUpdateListener(GroupMemberUpdateListener *listener);
 
 	/**
-	设置聯係人狀態變更监听，在connect之前调用
+    设置联系人状态变更监听，在connect之前调用
 
 	@param listener 接受消息监听
 	*/
 	void setContactUpdateListener(ContactUpdateListener *listener);
 
 	/**
-	设置好友請求變更监听，在connect之前调用
+    设置好友请求变更监听，在connect之前调用
 
 	@param listener 接受消息监听
 	*/
@@ -444,6 +443,12 @@ public:
     void setDefaultPortraitProvider(DefaultPortraitProvider *provider);
 
     /**
+     * @brief 设置大文件上传器
+     * @param uploader
+     */
+    void setBigFileUploader(std::function<void(const std::string &filePath, const std::string &mimeType, const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type, std::function<void(int uploaded, int total)> progress, std::function<void(const std::string &mediaUrl)> success, ErrorFunction error)> uploader);
+
+    /**
     设置自定义消息元宵，在connect之前调用，实现方法请参考文本文件
 
     @param prototype 自定义消息原型
@@ -457,6 +462,110 @@ public:
 	*/
 	void setAppName(const std::string &appName);
 
+    /**
+     * @brief 设置应用包名
+     * @param packageName
+     */
+    void setPackageName(const std::string &packageName);
+
+    /**
+     * @brief 设置心跳间隔。默认为智能心跳时间是2.5分钟到4.5分钟之间。设置后为固定间隔
+     * @param second 心跳间隔，单位为秒
+     */
+    void setHeartBeatInterval(int second);
+
+    /**
+     * @brief 使用国密加密。需要服务器和客户端同时开启。
+     */
+    void useSM4();
+
+    /**
+     * @brief 使用AES256加密，需要服务器和客户端同时开启。
+     */
+    void useAES256();
+
+    /**
+     * @brief 使用TCP的短链接
+     */
+    void useTcpShortLink();
+
+    /**
+     * @brief 是否开启了TCP的端连接
+     * @return
+     */
+    bool isTcpShortLink();
+
+    /**
+     * @brief SDK是否使用lite模式，仅限于某些特殊设备。
+     * @param liteMode
+     */
+    void setLiteMode(bool liteMode);
+
+    /**
+     * @brief 设置心跳时间。
+     * @param second
+     */
+    void setTimeOffset(int second);
+
+    /**
+     * @brief 返回SDK的端口，默认为80，如果是定制端口SDK会返回对应的端口。
+     * @return
+     */
+    int getRoutePort();
+
+    /**
+     * @brief 设置数据库目录
+     * @param dbPath
+     */
+    void setDBPath(const std::string &dbPath);
+
+    /**
+     * @brief 获取协议栈版本。
+     * @return 协议栈版本
+     */
+    const std::string getProtoRevision();
+
+    /**
+     * @brief 设置HTTP短链接的user agent
+     * @param userAgent
+     */
+    void setProtoUserAgent(const std::string &userAgent);
+
+    /**
+     * @brief HTTP短链接的header
+     * @param header
+     * @param value
+     */
+    void addHttpHeader(const std::string &header, const std::string &value);
+
+    /**
+     * @brief 设置代理，注意只能支持socks5代理，http代理无法支持，只有专业版支持次功能。
+     * @param host      代理服务域名，host和ip至少要有一个有效值。
+     * @param ip        代理服务IP地址，host和ip至少要有一个有效值。
+     * @param port
+     * @param username
+     * @param password
+     */
+    void setProxyInfo(const std::string &host, const std::string &ip, int port, const std::string &username, const std::string &password);
+
+    /**
+     * @brief 网络策略
+     * @param strategy
+     */
+    void setBackupAddressStrategy(int strategy);
+
+    /**
+     * @brief 备用地址
+     * @param address
+     * @param port
+     */
+    void setBackupAddress(const std::string &address, int port);
+
+    /**
+     * @brief 获取当前网络类型
+     * @return
+     */
+    ConnectedNetworkType getConnectedNetworkType();
     /**
      获取当前设备的设备Id
      */
@@ -494,6 +603,15 @@ public:
      */
     int64_t getServerDeltaTime();
 
+    /**
+     * @brief 获取日志路径
+     * @return
+     */
+    std::list<std::string> getLogFilesPath();
+
+    bool beginTransaction();
+    bool commitTransaction();
+    bool rollbackTransaction();
 
     /**
      获取会话信息
@@ -559,6 +677,7 @@ public:
      */
     void setConversationDraft(const Conversation &conversation, const std::string &draft);
 
+    void setConversationTimestamp(const Conversation &conversation, int64_t timestamp);
     /**
      获取指定类型会话的未读数
 
@@ -596,6 +715,8 @@ public:
      */
     void clearAllUnreadStatus();
 
+    void clearMessageUnreadStatus(long messageId);
+    void clearMessageUnreadStatusBefore(const Conversation &conversation, long mesageId);
     /**
      获取会话中最早的一条未读消息ID
 
@@ -604,6 +725,7 @@ public:
      */
     long getConversationFirstUnreadMessageId(const Conversation &conversation);
 
+    void clearRemoteConversationMessage(const Conversation &conversation, VoidSuccessFunction success, ErrorFunction error);
     /**
      设置媒体消息已播放
 
@@ -611,6 +733,7 @@ public:
      */
     void setMediaMessagePlayed(long messageId);
 
+    bool setMessageLocalExtra(long messageId, const std::string &extra);
     /**
      设置会话未读，只有当会话内有收到消息才能设置成功
 
@@ -677,6 +800,8 @@ public:
      @param dataType 回调类型
      */
     void getRemoteMessages(const Conversation &conversation, const std::list<int> &contentTypes, int64_t beforeMessageUid, int count, GetRemoteMessageCallback *callback = NULL, int callbackPara = 0);
+
+    void getRemoteMessage(int64_t messageUid, GetRemoteMessageCallback *callback = NULL, int callbackPara = 0);
     /**
      获取消息
 
@@ -718,6 +843,16 @@ public:
      @return 消息实体
      */
     const Message sendMessage(const Conversation &conversation, const MessageContent &content, const std::list<std::string> &toUsers, int expireDuration, WFSendMessageCallback *callback = NULL, int callbackPara = 0);
+
+    /**
+     * @brief 发送已保存消息
+     * @param messageId
+     * @param expireDuration
+     * @param succcallback
+     * @param errorcallback
+     * @return
+     */
+    bool sendSavedMessage(long messageId, int expireDuration, std::function<void(int64_t messageUid, int64_t timestamp)> succcallback, ErrorFunction errorcallback);
     /**
      撤回消息
 
@@ -741,12 +876,30 @@ public:
     void uploadMedia(const std::string &fileName, const std::string mediaData, MediaType mediaType, UploadMediaCallback *callback = NULL, int callbackPara = 0);
 
     /**
+     * @brief 获取上传地址
+     * @param fileName
+     * @param mediaType
+     * @param callback
+     */
+    void getUploadUrl(const std::string &fileName, MediaType mediaType, const std::string &mimeType, std::function<void(const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type)> callback, ErrorFunction errorcallback);
+
+    bool isSupportBigFilesUpload();
+    bool isForceBigFilesUpload();
+
+    /**
      删除消息
 
      @param messageId 消息ID
      @return 是否删除成功
      */
     bool deleteMessage(long messageId);
+
+    /**
+     * @brief 批量删除消息
+     * @param messageUids 消息的UID，不是消息的ID
+     * @return true有消息被删除，false没有消息删除
+     */
+    bool batchDeleteMessages(const std::list<int64_t> &messageUids);
 
     /**
      删除会话中的消息
@@ -763,6 +916,37 @@ public:
      */
     void clearMessages(const Conversation &conversation, int64_t before);
 
+    /**
+     * @brief 保留会话内最新指定条数，删除其他旧的消息
+     * @param conversation 会话
+     * @param keepCount    需要保留最新的条数
+     */
+    void clearMessagesKeep(const Conversation &conversation, int keepCount);
+
+    /**
+     * @brief 删除所有消息
+     * @param removeAllConversation 是否同时删除会话
+     */
+    void clearAllMessages(bool removeAllConversation);
+
+    /**
+     * @brief 删除服务端消息（本地也会同时删除）
+     * @param messageUid
+     * @param success
+     * @param error
+     */
+    void deleteRemoteMessage(int64_t messageUid, VoidSuccessFunction success, ErrorFunction error);
+
+    /**
+     * @brief 更新服务端消息内容。需要专业版IM服务，且配置允许客户端修改的类型。
+     * @param messageUid
+     * @param newContent
+     * @param distribute
+     * @param updateLocal
+     * @param success
+     * @param error
+     */
+    void updateRemoteMessage(int64_t messageUid, const MessageContent &newContent, bool distribute, bool updateLocal, VoidSuccessFunction success, ErrorFunction error);
     /**
      插入消息
 
@@ -782,6 +966,41 @@ public:
      */
     void updateMessage(long messageId, const MessageContent &content);
 
+    /**
+     更新消息内容
+
+     @param messageId 消息ID
+     @param content 消息内容
+     @param timestamp 时间戳毫秒
+     */
+    void updateMessageAndTimestamp(long messageId, const MessageContent &content, int64_t timestamp);
+
+    /**
+     更新消息内容
+
+     @param messageId 消息ID
+     @param content 消息内容
+     */
+    void updateMessage(long messageId, const MessagePayload &payload);
+
+    /**
+     * @brief 获取会话内的阅读状态，需要专业版IM服务支持
+     * @param conversation 会话
+     * @return 每个群成员的最后阅读时间
+     */
+
+    std::map<std::string, int64_t> getConversationRead(const Conversation &conversation);
+
+    /**
+     * @brief 获取会话内的群成员消息送达时间，需要专业版IM服务支持，超级群不支持送达报告
+     * @param conversation 会话
+     * @return 每个群成员的消息送达时间
+     */
+    std::map<std::string, int64_t> getMessageDelivery(const Conversation &conversation);
+
+    int getMessageCount(const Conversation &conversation);
+    int getConversationMessageCount(const std::list<ConversationType> &cts, const std::list<int> &ls);
+    std::map<std::string, int> getMessageCountByDay(const Conversation &conversation, const std::list<int> &cnts, int64_t startTime, int64_t endTime);
     /**
      获取用户信息
 
@@ -821,6 +1040,18 @@ public:
      @param objectDataType 回调的参数
      */
     void searchUser(const std::string &keyword, SearchUserType searchType, int page, SearchUserCallback *callback = NULL, int callbackPara = 0);
+
+    /**
+     在指定域中搜索用户
+
+     @param keyword 关键词
+     @param domainId 指定域
+     @param searchType 搜索类型
+     @param page page
+     @param callback 回调
+     @param objectDataType 回调的参数
+     */
+    void searchUser(const std::string &keyword, const std::string &domainId, SearchUserType searchType, UserSearchUserType userType, int page, SearchUserCallback *callback = NULL, int callbackPara = 0);
 
     /**
      查询用户和当前用户是否是好友关系
@@ -893,6 +1124,8 @@ public:
      */
     void clearUnreadFriendRequestStatus();
 
+    bool clearFriendRequest(int direction, int64_t beforeTime);
+    bool deleteFriendRequest(const std::string &userId, int direction);
     /**
      删除好友
 
@@ -938,6 +1171,12 @@ public:
     */
     void setFriend(const std::string &userId, const std::string &alias, GeneralVoidCallback *callback, int objecDataType);
 
+    /**
+     * @brief 获取好友的附加信息。附加信息只有在接收好友请求时才能设置.
+     * @param userId
+     * @return
+     */
+    const std::string getFriendExtra(const std::string &userId);
     /**
      查询用户是否被加入黑名单
 
@@ -1089,6 +1328,9 @@ public:
      */
     void modifyGroupAlias(const std::string &groupId, const std::string &newAlias, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
 
+    void modifyGroupMemberAlias(const std::string &groupId, const std::string &memberId, const std::string &newAlias, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
+
+    void modifyGroupMemberExtra(const std::string &groupId, const std::string &memberId, const std::string &extra, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
     /**
      转移群主
 
@@ -1110,8 +1352,9 @@ public:
      @param notifyContent 通知消息
      @param callback 回调
      */
-    void setGroupManager(const std::string &groupId, bool isSet, const std::list<std::string> &memberId, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
-
+    void setGroupManager(const std::string &groupId, bool isSet, const std::list<std::string> &memberIds, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
+    void muteGroupMember(const std::string &groupId, bool isSet, const std::list<std::string> &memberIds, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
+    void allowGroupMember(const std::string &groupId, bool isSet, const std::list<std::string> &memberIds, const std::list<int> &notifyLines = {0}, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
     /**
      获取当前用户收藏的群组
 
@@ -1135,6 +1378,8 @@ public:
      */
     void setFavGroup(const std::string &groupId, bool fav, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
 
+    void getMyGroups(Func<std::string>::modelListFunction success, ErrorFunction error);
+    void getCommonGroups(const std::string &userId, Func<std::string>::modelListFunction success, ErrorFunction error);
     /**
      获取个人设置
 
@@ -1172,6 +1417,13 @@ public:
      @discuss 性别属性是int类型，修改时需要转为字符串类型
      */
     void modifyMyInfo(int type, const std::string &value, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
+
+    bool isUserEnableReceipt();
+    void setUserEnableReceipt(bool enable, VoidSuccessFunction success, ErrorFunction error);
+
+    const std::list<std::string> getFavUsers();
+    bool isFavUser(const std::string &userId);
+    void setFavUser(const std::string &userId, bool fav, VoidSuccessFunction success, ErrorFunction error);
 
     /**
      是否是全局禁止通知
@@ -1250,6 +1502,8 @@ public:
     */
     void getChatroomMemberInfo(const std::string &chatroomId, int maxCount, GetChatroomMemberInfoCallback *callback = NULL, int callbackPara = 0);
 
+
+    const std::string getJoinedChatroomId();
     /**
      创建频道
 
@@ -1320,6 +1574,13 @@ public:
     const std::list<std::string> getListenedChannels();
 
     /**
+     获取当前用户收听的频道
+
+     @return 当前用户收听的频道ID
+     */
+    void getRemoteListenedChannels(Func<std::string>::modelListFunction success, ErrorFunction error);
+
+    /**
      销毁频道
 
      @param channelId 频道ID
@@ -1337,6 +1598,28 @@ public:
      */
     void getAuthorizedMediaUrl(long long messageId, int mediaType, const std::string & mediaPath, GeneralStringCallback * callback, int objectDataType);
 
+    bool isEnableSyncDraft();
+    DomainInfo getDomainInfo(const std::string &domainId, bool refresh);
+    void getRemoteDomains(Func<DomainInfo>::modelListFunction success, ErrorFunction error);
+    void getConversationFiles(const Conversation &conversation, const std::string &fromUser, int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error);
+    void getMyFiles(int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error);
+    void deleteFileRecord(int64_t messageUid, VoidSuccessFunction success, ErrorFunction error);
+    void searchFiles(const std::string &keyword, const Conversation &conversation, const std::string &fromUser, int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error);
+    void searchMyFiles(const std::string &keyword, int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error);
+    void getAuthCode(const std::string &applicationId, int type, const std::string &host, std::function<void(const std::string &code)> success, ErrorFunction error);
+    void configApplication(const std::string &applicationId, int type, int64_t timestamp, const std::string &nonce, const std::string &signature, VoidSuccessFunction success, ErrorFunction error);
+    bool isCommercialServer();
+    bool isReceiptEnabled();
+    bool isGroupReceiptEnabled();
+    bool isGlobalDisableSyncDraft();
+    bool isMeshEnabled();
+    UserCustomState getMyCustomState();
+    void setMyCustomState(const std::string &state, VoidSuccessFunction success, ErrorFunction error);
+    void watchOnlineState(int conversationType, const std::list<std::string> &targets, int watchDuration, Func<UserOnlineState>::modelListFunction success, ErrorFunction error);
+    void unwatchOnlineState(int conversationType, const std::list<std::string> &targets, VoidSuccessFunction success, ErrorFunction error);
+    bool isEnableUserOnlineState();
+    void requireLock(const std::string &lockId, int duration, VoidSuccessFunction success, ErrorFunction error);
+    void releaseLock(const std::string &lockId, VoidSuccessFunction success, ErrorFunction error);
     /**
      payload转为content，一般客户不需要使用
      */
@@ -1344,15 +1627,12 @@ public:
 public:
     virtual ~ChatClient();
 private:
-#if IS_QT
-    explicit ChatClient(QObject *parent = nullptr);
-#else
-    ChatClient();
-#endif
+    explicit ChatClient();
     std::map<int, const MessageContentPrototype *> messageContentFactorys;
     const std::string convertDllString(const  char *pDllString, size_t len);
 
     DefaultPortraitProvider *groupPortraitProvider;
+    std::function<void(const std::string &filePath, const std::string &mimeType, const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type, std::function<void(int uploaded, int total)> progress, std::function<void(const std::string &mediaUrl)> success, ErrorFunction error)> fileUploader;
 
     //内部使用的，不要外部用。。。
 public:

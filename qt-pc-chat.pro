@@ -17,9 +17,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-
+DEFINES += WF_QT=1
 DEFINES += RAPIDJSON_HAS_STDSTRING=1
-
 DEFINES += \
         USE_SPDLOG_ \
         NZENTAO_VER_
@@ -131,16 +130,26 @@ SOURCES += \
     src/wfc/message/UnknownMessageContent.cpp \
     src/wfc/message/VideoMessageContent.cpp \
     src/wfc/model/ChannelInfo.cpp \
+    src/wfc/model/ChannelMenu.cpp \
     src/wfc/model/ChatroomInfo.cpp \
     src/wfc/model/Conversation.cpp \
     src/wfc/model/ConversationInfo.cpp \
     src/wfc/model/ConversationSearchInfo.cpp \
+    src/wfc/model/DeliveryReport.cpp \
+    src/wfc/model/DomainInfo.cpp \
+    src/wfc/model/FileRecord.cpp \
+    src/wfc/model/Friend.cpp \
     src/wfc/model/FriendRequest.cpp \
     src/wfc/model/GroupInfo.cpp \
     src/wfc/model/GroupSearchInfo.cpp \
+    src/wfc/model/QuoteInfo.cpp \
+    src/wfc/model/ReadReport.cpp \
+    src/wfc/model/SecretChatInfo.cpp \
     src/wfc/model/UnreadCount.cpp \
     src/wfc/model/UserInfo.cpp \
+    src/wfc/model/UserOnlineState.cpp \
     src/wfc/model/UserSettingEntry.cpp \
+    src/wfc/model/uploadmediaurlentry.cpp \
     src/wfc/utility/JsonTools.cpp \
     src/wfc/utility/Serializable.cpp \
     src/vendor/zenshot/commands/addcommand.cpp \
@@ -244,7 +253,9 @@ SOURCES += \
     src/vendor/ezviewer/3rdparty/qxmlputget.cpp \
     src/vendor/ezviewer/3rdparty/exif.cpp \
     src/vendor/ezviewer/tools/imageheader.cpp \
-    src/vendor/ezviewer/3rdparty/jpgqguess.cpp
+    src/vendor/ezviewer/3rdparty/jpgqguess.cpp \
+    src/wfc/utility/fileuploader.cpp \
+    src/wfc/utility/qt/qtfileuploader.cpp
 
 
 HEADERS += \
@@ -354,19 +365,31 @@ HEADERS += \
     src/wfc/message/UnknownMessageContent.h \
     src/wfc/message/VideoMessageContent.h \
     src/wfc/model/ChannelInfo.h \
+    src/wfc/model/ChannelMenu.h \
     src/wfc/model/ChatroomInfo.h \
     src/wfc/model/Conversation.h \
     src/wfc/model/ConversationInfo.h \
     src/wfc/model/ConversationSearchInfo.h \
+    src/wfc/model/DeliveryReport.h \
+    src/wfc/model/DomainInfo.h \
+    src/wfc/model/FileRecord.h \
+    src/wfc/model/Friend.h \
     src/wfc/model/FriendRequest.h \
     src/wfc/model/GroupInfo.h \
     src/wfc/model/GroupSearchInfo.h \
+    src/wfc/model/QuoteInfo.h \
+    src/wfc/model/ReadReport.h \
+    src/wfc/model/SecretChatInfo.h \
     src/wfc/model/UnreadCount.h \
     src/wfc/model/UserInfo.h \
+    src/wfc/model/UserOnlineState.h \
     src/wfc/model/UserSettingEntry.h \
+    src/wfc/model/uploadmediaurlentry.h \
     src/wfc/proto/include/WFClient.h \
     src/wfc/utility/JsonTools.h \
     src/wfc/utility/Serializable.h \
+    src/wfc/utility/fileuploader.h \
+    src/wfc/utility/qt/qtfileuploader.h \
     src/wfc/vendor/rapidjson/allocators.h \
     src/wfc/vendor/rapidjson/cursorstreamwrapper.h \
     src/wfc/vendor/rapidjson/document.h \

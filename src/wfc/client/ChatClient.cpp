@@ -2,7 +2,11 @@
 #include "../proto/include/WFClient.h"
 #include <mutex>
 #include "../utility/JsonTools.h"
-
+#include "../model/uploadmediaurlentry.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include "../utility/fileuploader.h"
 
 #ifdef WIN32
 #define WFCAPI __stdcall
@@ -14,7 +18,6 @@ namespace WFCLib {
 
 template <typename T>
 std::list<T> serializableFromJsonList(const std::string &jsonListStr);
-
 
 static ConnectionStatusListener *gConnectionStatusListener = NULL;
 
@@ -64,13 +67,13 @@ void WFCAPI client_groupMembers_update_callback(const char *cgroupId, size_t gro
 
 static ContactUpdateListener *gContactUpdateListener = NULL;
 void WFCAPI client_friendList_update_callback(const char *cfriendList, size_t friendList_len) {
-    ChatClient::Instance()->onContactUpdated(parseStringList(std::string(cfriendList, friendList_len)));
+    ChatClient::Instance()->onContactUpdated(serializableFromJsonList<std::string>(std::string(cfriendList, friendList_len)));
 }
 
 
 static FriendRequestUpdateListener *gFriendRequestUpdateListener = NULL;
 void WFCAPI client_friendRequest_update_callback(const char *cfriendList, size_t friendList_len) {
-    ChatClient::Instance()->onFriendRequestUpdated(parseStringList(std::string(cfriendList, friendList_len)));
+    ChatClient::Instance()->onFriendRequestUpdated(serializableFromJsonList<std::string>(std::string(cfriendList, friendList_len)));
 }
 
 
@@ -122,6 +125,10 @@ public:
         MODIFY_CHANNEL_ID,
         LISTEN_CHANNEL_ID,
         DESTROY_CHANNEL_ID,
+        MODIFY_GROUP_MEMBER_ALIAS_ID,
+        MODIFY_GROUP_MEMBER_EXTRA_ID,
+        MUTE_GROUP_MEMBER_ID,
+        ALLOW_GROUP_MEMBER_ID,
     };
 
     static VoidCallbackContext* newConversationTopContext(const Conversation &conv, GeneralVoidCallback *callback, int callbackPara) {
@@ -233,6 +240,66 @@ static void WFCAPI client_get_messages_error_callback(void *pObj, int dataType, 
     }
 }
 
+class WFErrorLambdaCallback {
+public:
+    ErrorFunction errorcallback;
+    WFErrorLambdaCallback(ErrorFunction error) : errorcallback(error) {}
+};
+
+template<typename T>
+class WFTempLambdaCallback : public WFErrorLambdaCallback {
+public:
+    Func<T>::modelListFunction successcallback;
+    WFTempLambdaCallback(Func<T>::modelListFunction success, ErrorFunction error) : WFErrorLambdaCallback(error), successcallback(success) {}
+};
+
+template<typename T>
+void WFCAPI client_temp_success_lambda_callback(void *pObject, int dataType, const char *cval, size_t val_len) {
+    if (pObject) {
+        WFTempLambdaCallback<T> *callback = (WFTempLambdaCallback<T> *)pObject;
+        std::list<T> domains = serializableFromJsonList<T>(std::string(cval, val_len));
+        callback->successcallback(domains);
+        delete callback;
+    }
+}
+
+
+class WFVoidLambdaCallback : public WFErrorLambdaCallback {
+public:
+    std::function<void()> successcallback;
+    WFVoidLambdaCallback(std::function<void()> success, ErrorFunction error) : WFErrorLambdaCallback(error), successcallback(success) {}
+};
+
+void WFCAPI client_void_success_lambda_callback(void *pObject, int dataType) {
+    if (pObject) {
+        WFVoidLambdaCallback *callback = (WFVoidLambdaCallback *)pObject;
+        callback->successcallback();
+        delete callback;
+    }
+}
+
+class WFStringLambdaCallback : public WFErrorLambdaCallback {
+public:
+    std::function<void(const std::string &value)> successcallback;
+    WFStringLambdaCallback(std::function<void(const std::string &value)> success, ErrorFunction error) : WFErrorLambdaCallback(error), successcallback(success) {}
+};
+
+void WFCAPI client_string_success_lambda_callback(void *pObject, int dataType, const char *cval, size_t val_len) {
+    if (pObject) {
+        WFStringLambdaCallback *callback = (WFStringLambdaCallback *)pObject;
+        callback->successcallback(std::string(cval, val_len));
+        delete callback;
+    }
+}
+
+void WFCAPI client_error_lambda_callback(void *pObject, int dataType, int errorCode) {
+    if (pObject) {
+        WFErrorLambdaCallback *callback = (WFErrorLambdaCallback *)pObject;
+        callback->errorcallback(errorCode);
+        delete callback;
+    }
+}
+
 ChatClient* ChatClient::Instance() {
 	static ChatClient INSTANCE;
 	return &INSTANCE;
@@ -280,6 +347,11 @@ void ChatClient::setDefaultPortraitProvider(DefaultPortraitProvider *provider)
     groupPortraitProvider = provider;
 }
 
+void ChatClient::setBigFileUploader(std::function<void (const std::string &, const std::string &, const std::string &, const std::string &, const std::string &, int, std::function<void (int, int)>, std::function<void (const std::string &)>, ErrorFunction)> uploader)
+{
+    this->fileUploader = uploader;
+}
+
 void ChatClient::registerMessage(const MessageContentPrototype *prototype)
 {
     messageContentFactorys[prototype->getType()] = prototype;
@@ -288,6 +360,81 @@ void ChatClient::registerMessage(const MessageContentPrototype *prototype)
 
 void ChatClient::setAppName(const std::string &appName) {
     WFClient::setAppName(appName.c_str(), appName.length());
+}
+
+void ChatClient::setPackageName(const std::string &packageName)
+{
+
+}
+
+void ChatClient::setHeartBeatInterval(int second)
+{
+
+}
+
+void ChatClient::useSM4() {
+    WFClient::useSM4();
+}
+
+void ChatClient::useAES256() {
+    WFClient::useAES256();
+}
+
+void ChatClient::useTcpShortLink() {
+    WFClient::useTcpShortLink();
+}
+
+bool ChatClient::isTcpShortLink() {
+    return WFClient::isTcpShortLink();
+}
+
+void ChatClient::setLiteMode(bool liteMode) {
+    WFClient::setLiteMode(liteMode);
+}
+
+void ChatClient::setTimeOffset(int second) {
+    WFClient::setTimeOffset(second);
+}
+
+int ChatClient::getRoutePort() {
+    return WFClient::getRoutePort();
+}
+
+void ChatClient::setDBPath(const std::string &dbPath)
+{
+
+}
+
+const std::string ChatClient::getProtoRevision() {
+    size_t len = 0;
+    const char* str = WFClient::getProtoRevision(&len);
+    return convertDllString(str, len);
+}
+
+void ChatClient::setProtoUserAgent(const std::string &userAgent) {
+    WFClient::setUserAgent(userAgent.c_str(), userAgent.size());
+}
+
+void ChatClient::addHttpHeader(const std::string &header, const std::string &value) {
+    WFClient::addHttpHeader(header.c_str(), header.size(), value.c_str(), value.size());
+}
+
+void ChatClient::setProxyInfo(const std::string &host, const std::string &ip, int port, const std::string &username, const std::string &password) {
+    WFClient::setProxyInfo(host.c_str(), host.size(), ip.c_str(), ip.size(), port, username.c_str(), username.size(), password.c_str(), password.size());
+}
+
+
+void ChatClient::setBackupAddressStrategy(int strategy) {
+    WFClient::setBackupAddressStrategy(strategy);
+}
+
+void ChatClient::setBackupAddress(const std::string &address, int port) {
+    WFClient::setBackupAddress(address.c_str(), address.size(), port);
+}
+
+ConnectedNetworkType ChatClient::getConnectedNetworkType()
+{
+
 }
 
 const std::string ChatClient::getClientId()
@@ -313,10 +460,10 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
 }
 
 
-#if IS_QT
-    ChatClient::ChatClient(QObject *parent) : QObject(parent)
-#else
-    ChatClient::ChatClient()
+
+ChatClient::ChatClient()
+#if WF_QT
+     : QObject(NULL)
 #endif
 {
 	registerMessage(&TextMessageContent::sPrototype);
@@ -348,7 +495,7 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
     registerMessage(&GroupJoinTypeNotificationContent::sPrototype);
 
 
-#if IS_QT
+#if WF_QT
     // 在main()函数或静态初始化中注册
 
     qRegisterMetaType<int64_t>("int64_t");
@@ -364,8 +511,29 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
     qRegisterMetaType<std::list<UserInfo>>("std::list<UserInfo>");
     qRegisterMetaType<std::list<GroupInfo>>("std::list<GroupInfo>");
     qRegisterMetaType<std::list<ChannelInfo>>("std::list<ChannelInfo>");
-
 #endif
+
+    fileUploader = [this](const std::string &filePath, const std::string &mimeType, const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type, std::function<void(int uploaded, int total)> progress, std::function<void(const std::string &mediaUrl)> success, ErrorFunction error) {
+#if WF_QT
+        QMetaObject::invokeMethod(this, [=]() {
+            FileUploader *uploader = FileUploader::getLoader(progress, [success, mediaUrl](){
+                success(mediaUrl);
+            }, [error](int errorCode){
+                                                                 error(errorCode);
+                                                             });
+
+            uploader->uploadFile(uploadUrl, filePath);
+        }, Qt::QueuedConnection);
+#else
+        FileUploader *uploader = FileUploader::getLoader(progress, [success, mediaUrl](){
+            success(mediaUrl);
+        }, [error](int errorCode){
+                                                             error(errorCode);
+                                                         });
+
+        uploader->uploadFile(uploadUrl, filePath);
+#endif
+    };
 
     groupPortraitProvider = nullptr;
 }
@@ -391,6 +559,29 @@ const std::string ChatClient::getCurrentUserId() {
 
 int64_t ChatClient::getServerDeltaTime() {
     return WFClient::getServerDeltaTime();
+}
+
+std::list<std::string> ChatClient::getLogFilesPath() {
+    std::list<std::string> paths;
+    size_t len = 0;
+    const char *cstr = WFClient::getLogFilesPath(&len);
+    std::string str = convertDllString(cstr, len);
+    return serializableFromJsonList<std::string>(str);
+}
+
+bool ChatClient::beginTransaction()
+{
+    return WFClient::beginTransaction();
+}
+
+bool ChatClient::commitTransaction()
+{
+    return WFClient::commitTransaction();
+}
+
+bool ChatClient::rollbackTransaction()
+{
+    return WFClient::rollbackTransaction();
 }
 
 ChatClient::~ChatClient()
@@ -421,6 +612,18 @@ int* toArray(const std::list<int> &conversationTypes) {
     int *p = new int[conversationTypes.size()];
     int i = 0;
     for(int t : conversationTypes) {
+        *(p + i) = t;
+        i++;
+    }
+
+    return p;
+}
+
+template<typename T>
+T* toArray(const std::list<T> &cs) {
+    T *p = new T[cs.size()];
+    int i = 0;
+    for(T t : cs) {
         *(p + i) = t;
         i++;
     }
@@ -481,9 +684,14 @@ void ChatClient::setConversationSilent(const Conversation &conversation, bool si
 
 void ChatClient::setConversationDraft(const Conversation &conversation, const std::string &draft) {
     WFClient::setConversationDraft(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, draft.c_str(), draft.size());
-#if IS_QT
+#if WF_QT
     emit draftUpdated(conversation, draft);
 #endif
+}
+
+void ChatClient::setConversationTimestamp(const Conversation &conversation, int64_t timestamp)
+{
+    WFClient::setConversationTimestamp(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, timestamp);
 }
 
 UnreadCount ChatClient::getUnreadCount(const std::list<int> &conversationTypes, const std::list<int> &lines) {
@@ -511,7 +719,7 @@ UnreadCount ChatClient::getUnreadCount(const Conversation &conversation) {
 
 void ChatClient::clearUnreadStatus(const Conversation &conversation) {
     bool updated = WFClient::clearUnreadStatus(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line);
-#if IS_QT
+#if WF_QT
     if(updated)
     emit unreadStatusCleared(conversation);
 #endif
@@ -523,7 +731,7 @@ void ChatClient::clearUnreadStatus(const std::list<int> &conversationTypes, cons
     bool updated = WFClient::clearUnreadStatusEx(cs, conversationTypes.size(), ls, lines.size());
     delete[] cs;
     delete[] ls;
-#if IS_QT
+#if WF_QT
     if(updated)
     emit unreadStatusAllCleared();
 #endif
@@ -531,10 +739,20 @@ void ChatClient::clearUnreadStatus(const std::list<int> &conversationTypes, cons
 
 void ChatClient::clearAllUnreadStatus() {
     bool updated = WFClient::clearAllUnreadStatus();
-#if IS_QT
+#if WF_QT
     if(updated)
     emit unreadStatusAllCleared();
 #endif
+}
+
+void ChatClient::clearMessageUnreadStatus(long messageId)
+{
+    WFClient::clearMessageUnreadStatus(messageId);
+}
+
+void ChatClient::clearMessageUnreadStatusBefore(const Conversation &conversation, long messageId)
+{
+    WFClient::clearMessageUnreadStatusBefore(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, messageId);
 }
 
 long ChatClient::getConversationFirstUnreadMessageId(const Conversation &conversation)
@@ -542,8 +760,18 @@ long ChatClient::getConversationFirstUnreadMessageId(const Conversation &convers
     return WFClient::getConversationFirstUnreadMessageId(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line);
 }
 
+void ChatClient::clearRemoteConversationMessage(const Conversation &conversation, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::clearRemoteConversationMessage(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
 void ChatClient::setMediaMessagePlayed(long messageId) {
     WFClient::setMediaMessagePlayed(messageId);
+}
+
+bool ChatClient::setMessageLocalExtra(long messageId, const std::string &extra)
+{
+    return WFClient::setMessageLocalExtra(messageId, extra.c_str(), extra.size());
 }
 
 bool ChatClient::markAsUnread(const Conversation &conversation, bool sync) {
@@ -614,6 +842,11 @@ void ChatClient::getRemoteMessages(const Conversation &conversation, const std::
     int *ts = toArray(contentTypes);
     WFClient::getRemoteMessages(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, ts, contentTypes.size(), beforeMessageUid, count, client_get_remote_message_success_callback, client_get_remote_message_error_callback, callback, callbackPara);
     delete[] ts;
+}
+
+void ChatClient::getRemoteMessage(int64_t messageUid, GetRemoteMessageCallback *callback, int callbackPara)
+{
+    WFClient::getRemoteMessage(messageUid, client_get_remote_message_success_callback, client_get_remote_message_error_callback, callback, callbackPara);
 }
 
 const Message ChatClient::getMessage(long messageId) {
@@ -714,7 +947,82 @@ static void freeStringArray(size_t *lengths, const char** users, size_t len) {
     delete[] lengths;
 }
 
+// 定义200MB的字节数 (200 * 1024 * 1024)
+const unsigned long long MAX_SIZE = 200ULL * 1024 * 1024;
+
+/**
+ * 检查文件大小是否大于200MB
+ * @param filename 文件名
+ * @return 如果文件大小大于200MB返回true，否则返回false
+ */
+bool isLargerThan200MB(const std::string& filename) {
+    // 以二进制模式打开文件，以便获取准确大小
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+
+    // 检查文件是否成功打开
+    if (!file.is_open()) {
+        std::cerr << "无法打开文件: " << filename << std::endl;
+        return false; // 或者根据需要抛出异常
+    }
+
+    // 获取文件大小（因为使用了ios::ate，指针已经在文件末尾）
+    std::streampos fileSize = file.tellg();
+
+    // 转换为无符号长整数并比较
+    return static_cast<unsigned long long>(fileSize) > MAX_SIZE;
+}
+
 const Message ChatClient::sendMessage(const Conversation &conversation, const MessageContent &content, const std::list<std::string> &toUsers, int expireDuration, WFSendMessageCallback *callback, int callbackPara) {
+    bool bigFileUpload = false;
+    if(fileUploader != nullptr) {
+        try {
+            const MediaMessageContent &mediaContent = dynamic_cast<const MediaMessageContent&>(content);
+            if(mediaContent.remoteUrl.empty() && !mediaContent.localPath.empty()) {
+                if(WFClient::isSupportBigFilesUpload()) {
+                    if(WFClient::isForceBigFilesUpload()) {
+                        bigFileUpload = true;
+                    } else {
+                        bigFileUpload = true;//isLargerThan200MB(mediaContent.localPath);
+                    }
+                }
+            }
+        } catch (const std::bad_cast& e) {
+        }
+    }
+
+    if(bigFileUpload) {
+        std::string mimeType = "application/octet-stream";
+        Message message = insert(conversation, getCurrentUserId(), content, Message_Status_Sending, false, 0);
+        onMessageSendPrepared(message.messageId, message.timestamp);
+        if(callback) callback->onPrepared(callbackPara, message.messageId, message.timestamp);
+        MessagePayload payload = content.encode();
+        long messageId = message.messageId;
+
+        getUploadUrl("", (MediaType)payload.mediaType, mimeType, [this, messageId, expireDuration, mimeType, payload, callback, callbackPara](const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type){
+            fileUploader(payload.localMediaPath, mimeType, uploadUrl, mediaUrl, backupUploadUrl, type, [this, messageId, callback, callbackPara](int uploaded, int total) {
+                    this->onMessageSendProgress(messageId, uploaded, total);
+                    if(callback) callback->onProgress(callbackPara, uploaded, total);
+                }, [this, payload, messageId, expireDuration, callback, callbackPara](const std::string &url) {
+                    MessagePayload newPayload = payload;
+                    newPayload.remoteMediaUrl = url;
+                    updateMessage(messageId, newPayload);
+                    this->onMessageSendUploaded(messageId, url);
+                    sendSavedMessage(messageId, expireDuration, [callbackPara, callback](int64_t messageUid, int64_t timesatmp){
+                        if(callback) callback->onSuccess(callbackPara, messageUid, timesatmp);
+                    }, [callback, callbackPara](int errorCode) {
+                        if(callback) callback->onFailure(callbackPara, errorCode);
+                    });
+                }, [this, messageId, callback, callbackPara](int errorCode) {
+                    this->onMessageSendFailure(messageId, errorCode);
+                    if(callback) callback->onFailure(callbackPara, errorCode);
+                });
+        }, [this, messageId, callback, callbackPara](int errorCode) {
+            this->onMessageSendFailure(messageId, errorCode);
+            if(callback) callback->onFailure(callbackPara, errorCode);
+        });
+        return message;
+    }
+
     std::string cntStr = content.encode().toJson();
 
     const char** users;
@@ -729,6 +1037,34 @@ const Message ChatClient::sendMessage(const Conversation &conversation, const Me
     Message message;
     message.fromJson(str);
     return message;
+}
+
+class WFSendMessageLambdaCallback : public WFErrorLambdaCallback {
+public:
+    std::function<void(int64_t messageUid, int64_t timestamp)> successcallback;
+    WFSendMessageLambdaCallback(std::function<void(int64_t messageUid, int64_t timestamp)> success, ErrorFunction error) : WFErrorLambdaCallback(error), successcallback(success) {}
+};
+
+void WFCAPI client_sendMessage_success_lambda_callback(void *pObject, int dataType, long messageId, int64_t messageUid, int64_t timestamp) {
+    ChatClient::Instance()->onMessageSendSuccess(messageId, messageUid, timestamp);
+    if (pObject) {
+        WFSendMessageLambdaCallback *callback = (WFSendMessageLambdaCallback *)pObject;
+        callback->successcallback(messageUid, timestamp);
+        delete callback;
+    }
+}
+
+void WFCAPI client_sendMessage_error_lambda_callback(void *pObject, int dataType, long messageId, int errorCode) {
+    ChatClient::Instance()->onMessageSendFailure(messageId, errorCode);
+    if (pObject) {
+        WFErrorLambdaCallback *callback = (WFErrorLambdaCallback *)pObject;
+        callback->errorcallback(errorCode);
+        delete callback;
+    }
+}
+
+bool ChatClient::sendSavedMessage(long messageId, int expireDuration, std::function<void(int64_t messageUid, int64_t timestamp)> succcallback, ErrorFunction errorcallback) {
+    return WFClient::sendSavedMessage(messageId, expireDuration, client_sendMessage_success_lambda_callback, client_sendMessage_error_lambda_callback, new WFSendMessageLambdaCallback(succcallback, errorcallback), 0);
 }
 
 void ChatClient::recallMessage(int64_t messageUid, GeneralVoidCallback *callback, int callbackPara) {
@@ -760,23 +1096,81 @@ void ChatClient::uploadMedia(const std::string &fileName, const std::string medi
     WFClient::uploadMedia(fileName.c_str(), fileName.size(), mediaData.c_str(), (int)mediaData.length(), mediaType, client_uploadMedia_success_callback, client_uploadMedia_error_callback, client_uploadMedia_progress_callback, callback, callbackPara);
 }
 
+class WFGetUploadUrlLambdaCallback : public WFErrorLambdaCallback {
+public:
+    std::function<void(const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupMediaUrl, int type)> successcallback;
+    WFGetUploadUrlLambdaCallback(std::function<void(const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupMediaUrl, int type)> success, ErrorFunction error) : WFErrorLambdaCallback(error), successcallback(success) {}
+};
+
+void WFCAPI client_get_upload_url_success_lambda_callback(void *pObject, int dataType, const char *cval, size_t val_len) {
+    if (pObject) {
+        UploadMediaUrlEntry entry;
+        entry.fromJson(std::string(cval, val_len));
+        WFGetUploadUrlLambdaCallback *callback = (WFGetUploadUrlLambdaCallback *)pObject;
+        callback->successcallback(entry.uploadUrl, entry.mediaUrl, entry.backupUploadUrl, entry.type);
+        delete callback;
+    }
+}
+
+void ChatClient::getUploadUrl(const std::string &fileName, MediaType mediaType, const std::string &mimeType, std::function<void(const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type)> callback, ErrorFunction errorcallback) {
+    WFClient::getUploadUrl(fileName.c_str(), fileName.size(), mediaType, mimeType.c_str(), mimeType.size(), client_get_upload_url_success_lambda_callback, client_error_lambda_callback, NULL, new WFGetUploadUrlLambdaCallback(callback, errorcallback), 0);
+}
+
+bool ChatClient::isSupportBigFilesUpload()
+{
+    return WFClient::isSupportBigFilesUpload();
+}
+
+bool ChatClient::isForceBigFilesUpload()
+{
+    return WFClient::isForceBigFilesUpload();
+}
+
 bool ChatClient::deleteMessage(long messageId) {
     return WFClient::deleteMessage(messageId);
 }
 
+bool ChatClient::batchDeleteMessages(const std::list<int64_t> &messageUids)
+{
+    int64_t *as = toArray<int64_t>(messageUids);
+    bool ret = WFClient::batchDeleteMessages(as, messageUids.size());
+    delete[] as;
+    return ret;
+}
 
 void ChatClient::clearMessages(const Conversation &conversation) {
     WFClient::clearMessages(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line);
-#if IS_QT
+#if WF_QT
     emit conversationMessageCleared(conversation, 0);
 #endif
 }
 
 void ChatClient::clearMessages(const Conversation &conversation, int64_t before) {
     WFClient::clearMessagesBefore(conversation.conversationType, conversation.target.c_str(), conversation.target.size(),  conversation.line, before);
-#if IS_QT
+#if WF_QT
     emit conversationMessageCleared(conversation, before);
 #endif
+}
+
+void ChatClient::clearMessagesKeep(const Conversation &conversation, int keepCount)
+{
+    WFClient::clearMessagesKeep(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, keepCount);
+}
+
+void ChatClient::clearAllMessages(bool removeAllConversation)
+{
+    WFClient::clearAllMessages(removeAllConversation);
+}
+
+void ChatClient::deleteRemoteMessage(int64_t messageUid, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::deleteRemoteMessage(messageUid, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+void ChatClient::updateRemoteMessage(int64_t messageUid, const MessageContent &newContent, bool distribute, bool updateLocal, VoidSuccessFunction success, ErrorFunction error)
+{
+    std::string contentStr = newContent.encode().toJson();
+    WFClient::updateRemoteMessage(messageUid, contentStr.c_str(), contentStr.size(), distribute, updateLocal, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
 }
 
 const Message ChatClient::insert(const Conversation &conversation, const std::string &sender, const MessageContent &content, MessageStatus status, bool notify, int64_t serverTime) {
@@ -793,6 +1187,60 @@ const Message ChatClient::insert(const Conversation &conversation, const std::st
 void ChatClient::updateMessage(long messageId, const MessageContent &content) {
     std::string str = content.encode().toJson();
     WFClient::updateMessage(messageId, str.c_str(), str.size());
+}
+
+void ChatClient::updateMessageAndTimestamp(long messageId, const MessageContent &content, int64_t timestamp)
+{
+    std::string str = content.encode().toJson();
+    WFClient::updateMessageContentAndTime(messageId, str.c_str(), str.size(), timestamp);
+}
+
+void ChatClient::updateMessage(long messageId, const MessagePayload &payload) {
+    std::string str = payload.toJson();
+    WFClient::updateMessage(messageId, str.c_str(), str.size());
+}
+template <typename T>
+std::map<std::string, T> serializableFromJsonMap(const std::string &jsonListStr);
+std::map<std::string, int64_t> ChatClient::getConversationRead(const Conversation &conversation)
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getConversationRead(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, &len);
+    std::string str = convertDllString(pstr, len);
+    return serializableFromJsonMap<int64_t>(str);
+}
+
+std::map<std::string, int64_t> ChatClient::getMessageDelivery(const Conversation &conversation)
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getMessageDelivery(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), &len);
+    std::string str = convertDllString(pstr, len);
+    return serializableFromJsonMap<int64_t>(str);
+}
+
+int ChatClient::getMessageCount(const Conversation &conversation)
+{
+    return WFClient::getMessageCount(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line);
+}
+
+int ChatClient::getConversationMessageCount(const std::list<ConversationType> &cts, const std::list<int> &ls)
+{
+    ConversationType *p = toArray(cts);
+    int *l = toArray(ls);
+    int count = WFClient::getConversationMessageCount((const int *)p, cts.size(), l, ls.size());
+    delete[] p;
+    delete[] l;
+    return count;
+}
+
+std::map<std::string, int> ChatClient::getMessageCountByDay(const Conversation &conversation, const std::list<int> &cnts, int64_t startTime, int64_t endTime)
+{
+    int *l = toArray(cnts);
+    size_t len = 0;
+    const char* pstr = WFClient::getMessageCountByDay(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, l, cnts.size(), startTime, endTime, &len);
+    std::string str = convertDllString(pstr, len);
+    std::map<std::string, int> ret = serializableFromJsonMap<int>(str);
+    delete[] l;
+    return ret;
 }
 
 const UserInfo ChatClient::getUserInfo(const std::string &userId, bool refresh) {
@@ -839,6 +1287,11 @@ void ChatClient::searchUser(const std::string &keyword, SearchUserType searchTyp
     WFClient::searchUser(keyword.c_str(), keyword.size(), searchType, page, client_searchUser_success_callback, client_searchUser_error_callback, callback, callbackPara);
 }
 
+void ChatClient::searchUser(const std::string &keyword, const std::string &domainId, SearchUserType searchType, UserSearchUserType userType, int page, SearchUserCallback *callback, int callbackPara)
+{
+    WFClient::searchUserEx(keyword.c_str(), keyword.size(), domainId.c_str(), domainId.size(), searchType, userType, page, client_searchUser_success_callback, client_searchUser_error_callback, callback, callbackPara);
+}
+
 bool ChatClient::isMyFriend(const std::string &userId) {
     return WFClient::isMyFriend(userId.c_str(), userId.size());
 }
@@ -847,7 +1300,7 @@ const std::list<std::string> ChatClient::getMyFriendList(bool refresh) {
     size_t len = 0;
     const char* pstr = WFClient::getMyFriendList(refresh, &len);
     std::string str = convertDllString(pstr, len);
-    return parseStringList(str);
+    return serializableFromJsonList<std::string>(str);
 }
 
 const std::list<UserInfo> ChatClient::searchFriends(const std::string &keyword) {
@@ -856,7 +1309,6 @@ const std::list<UserInfo> ChatClient::searchFriends(const std::string &keyword) 
     std::string str = convertDllString(pstr, len);
     return serializableFromJsonList<UserInfo>(str);
 }
-
 
 const std::list<GroupSearchInfo> ChatClient::searchGroups(const std::string &keyword) {
     size_t len = 0;
@@ -900,6 +1352,16 @@ void ChatClient::clearUnreadFriendRequestStatus() {
     WFClient::clearUnreadFriendRequestStatus();
 }
 
+bool ChatClient::clearFriendRequest(int direction, int64_t beforeTime)
+{
+    return WFClient::clearFriendRequest(direction, beforeTime);
+}
+
+bool ChatClient::deleteFriendRequest(const std::string &userId, int direction)
+{
+    return WFClient::deleteFriendRequest(userId.c_str(), userId.size(), direction);
+}
+
 void ChatClient::deleteFriend(const std::string &userId, GeneralVoidCallback *callback, int callbackPara) {
     WFClient::deleteFriend(userId.c_str(), userId.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(userId, VoidCallbackContext::Type::DELETE_FRIEND_USER_ID, callback, callbackPara), 0);
 }
@@ -922,6 +1384,13 @@ void ChatClient::setFriend(const std::string &userId, const std::string &alias, 
     WFClient::setFriendAlias(userId.c_str(), userId.size(), alias.c_str(), alias.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(userId, VoidCallbackContext::Type::SET_FRIEND_ALIAS_USER_ID, callback, callbackPara), 0);
 }
 
+const std::string ChatClient::getFriendExtra(const std::string &userId)
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getFriendExtra(userId.c_str(), userId.size(), &len);
+    return convertDllString(pstr, len);
+}
+
 bool ChatClient::isBlackListed(const std::string &userId) {
     return WFClient::isBlackListed(userId.c_str(), userId.size());
 }
@@ -930,7 +1399,7 @@ const std::list<std::string> ChatClient::getBlackList(bool refresh) {
     size_t len = 0;
     const char* pstr = WFClient::getBlackList(refresh, &len);
     std::string str = convertDllString(pstr, len);
-    return parseStringList(str);
+    return serializableFromJsonList<std::string>(str);
 }
 
 void ChatClient::setBlackList(const std::string &userId, bool isBlackListed, GeneralVoidCallback *callback, int callbackPara) {
@@ -1058,6 +1527,22 @@ void ChatClient::modifyGroupAlias(const std::string &groupId, const std::string 
     delete[] ls;
 }
 
+void ChatClient::modifyGroupMemberAlias(const std::string &groupId, const std::string &memberId, const std::string &newAlias, const std::list<int> &notifyLines, GeneralVoidCallback *callback, int callbackPara)
+{
+    int *ls = toArray(notifyLines);
+    std::string strCont;
+    WFClient::modifyGroupMemberAlias(groupId.c_str(), groupId.size(), memberId.c_str(), memberId.size(), newAlias.c_str(), newAlias.size(), ls, notifyLines.size(), strCont.c_str(), strCont.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(groupId, VoidCallbackContext::Type::MODIFY_GROUP_MEMBER_ALIAS_ID, callback, callbackPara), 0);
+    delete[] ls;
+}
+
+void ChatClient::modifyGroupMemberExtra(const std::string &groupId, const std::string &memberId, const std::string &extra, const std::list<int> &notifyLines, GeneralVoidCallback *callback, int callbackPara)
+{
+    int *ls = toArray(notifyLines);
+    std::string strCont;
+    WFClient::modifyGroupMemberExtra(groupId.c_str(), groupId.size(), memberId.c_str(), memberId.size(), extra.c_str(), extra.size(), ls, notifyLines.size(), strCont.c_str(), strCont.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(groupId, VoidCallbackContext::Type::MODIFY_GROUP_MEMBER_EXTRA_ID, callback, callbackPara), 0);
+    delete[] ls;
+}
+
 void ChatClient::transferGroup(const std::string &groupId, const std::string &newOwner, const std::list<int> &notifyLines,  GeneralVoidCallback *callback, int callbackPara) {
     int *ls = toArray(notifyLines);
     std::string strCont;
@@ -1078,11 +1563,37 @@ void ChatClient::setGroupManager(const std::string &groupId, bool isSet, const s
     delete[] ls;
 }
 
+void ChatClient::muteGroupMember(const std::string &groupId, bool isSet, const std::list<std::string> &memberIds, const std::list<int> &notifyLines, GeneralVoidCallback *callback, int callbackPara)
+{
+    const char** users;
+    size_t *lengths;
+    int len = toStringArray(memberIds, &lengths, &users);
+    int *ls = toArray(notifyLines);
+    std::string strCont;
+
+    WFClient::muteGroupMember(groupId.c_str(), groupId.size(), isSet, users, lengths, len, ls, notifyLines.size(), strCont.c_str(), strCont.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(groupId, VoidCallbackContext::Type::MUTE_GROUP_MEMBER_ID, callback, callbackPara), 0);
+    freeStringArray(lengths, users, len);
+    delete[] ls;
+}
+
+void ChatClient::allowGroupMember(const std::string &groupId, bool isSet, const std::list<std::string> &memberIds, const std::list<int> &notifyLines, GeneralVoidCallback *callback, int callbackPara)
+{
+    const char** users;
+    size_t *lengths;
+    int len = toStringArray(memberIds, &lengths, &users);
+    int *ls = toArray(notifyLines);
+    std::string strCont;
+
+    WFClient::allowGroupMember(groupId.c_str(), groupId.size(), isSet, users, lengths, len, ls, notifyLines.size(), strCont.c_str(), strCont.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(groupId, VoidCallbackContext::Type::ALLOW_GROUP_MEMBER_ID, callback, callbackPara), 0);
+    freeStringArray(lengths, users, len);
+    delete[] ls;
+}
+
 const std::list<std::string> ChatClient::getFavGroups() {
     size_t len = 0;
     const char* pstr = WFClient::getFavGroups(&len);
     std::string str = convertDllString(pstr, len);
-    return parseStringList(str);
+    return serializableFromJsonList<std::string>(str);
 }
 
 bool ChatClient::isFavGroup(const std::string &groupId) {
@@ -1091,6 +1602,16 @@ bool ChatClient::isFavGroup(const std::string &groupId) {
 
 void ChatClient::setFavGroup(const std::string &groupId, bool fav, GeneralVoidCallback *callback, int callbackPara) {
     WFClient::setFavGroup(groupId.c_str(), groupId.size(), fav, client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newStringContext(groupId, VoidCallbackContext::Type::SET_FAV_GROUP_ID, callback, callbackPara), 0);
+}
+
+void ChatClient::getMyGroups(Func<std::string>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::getMyGroups(client_temp_success_lambda_callback<std::string>, client_error_lambda_callback, new WFTempLambdaCallback<std::string>(success, error), 0);
+}
+
+void ChatClient::getCommonGroups(const std::string &userId, Func<std::string>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::getCommonGroups(userId.c_str(), userId.size(), client_temp_success_lambda_callback<std::string>, client_error_lambda_callback, new WFTempLambdaCallback<std::string>(success, error), 0);
 }
 
 const std::string ChatClient::getUserSetting(UserSettingScope scope, const std::string &key) {
@@ -1135,6 +1656,33 @@ void ChatClient::setUserSetting(UserSettingScope scope, const std::string &key, 
 
 void ChatClient::modifyMyInfo(int type, const std::string &value, GeneralVoidCallback *callback, int callbackPara) {
     WFClient::modifyMyInfo(type, value.c_str(), value.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newVoidContext(VoidCallbackContext::Type::MODIFY_MY_INFO, callback, callbackPara), 0);
+}
+
+bool ChatClient::isUserEnableReceipt()
+{
+    return WFClient::isUserEnableReceipt();
+}
+
+void ChatClient::setUserEnableReceipt(bool enable, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::setUserEnableReceipt(enable, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+const std::list<std::string> ChatClient::getFavUsers()
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getFavUsers(&len);
+    return serializableFromJsonList<std::string>(std::string(pstr, len));
+}
+
+bool ChatClient::isFavUser(const std::string &userId)
+{
+    return WFClient::isFavUser(userId.c_str(), userId.size());
+}
+
+void ChatClient::setFavUser(const std::string &userId, bool fav, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::setFavUser(userId.c_str(), userId.size(), fav, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
 }
 
 bool ChatClient::isGlobalSilent() {
@@ -1210,6 +1758,12 @@ void ChatClient::getChatroomMemberInfo(const std::string &chatroomId, int maxCou
     WFClient::getChatroomMemberInfo(chatroomId.c_str(), chatroomId.size(), maxCount, client_get_chatroomMemberInfo_success_callback, client_get_chatroomMemberInfo_error_callback, callback, callbackPara);
 }
 
+const std::string ChatClient::getJoinedChatroomId()
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getJoinedChatroomId(&len);
+    return convertDllString(pstr, len);
+}
 
 static void WFCAPI client_get_channelInfo_success_callback(void *pObj, int callbackPara, const char *cvalue, size_t value_len) {
     if (pObj) {
@@ -1274,14 +1828,18 @@ const std::list<std::string> ChatClient::getMyChannels() {
     size_t len = 0;
     const char* pstr = WFClient::getMyChannels(&len);
     std::string str = convertDllString(pstr, len);
-    return parseStringList(str);
+    return serializableFromJsonList<std::string>(str);
 }
 
 const std::list<std::string> ChatClient::getListenedChannels() {
     size_t len = 0;
     const char* pstr = WFClient::getListenedChannels(&len);
     std::string str = convertDllString(pstr, len);
-    return parseStringList(str);
+    return serializableFromJsonList<std::string>(str);
+}
+
+void ChatClient::getRemoteListenedChannels(Func<std::string>::modelListFunction success, ErrorFunction error) {
+    WFClient::getRemoteListenedChannels(client_temp_success_lambda_callback<std::string>, client_error_lambda_callback, new WFTempLambdaCallback<std::string>(success, error), 0);
 }
 
 void ChatClient::destoryChannel(const std::string &channelId, GeneralVoidCallback *callback, int callbackPara) {
@@ -1292,8 +1850,134 @@ void ChatClient::getAuthorizedMediaUrl(long long messageId, int mediaType, const
     WFClient::getAuthorizedMediaUrl(messageId, mediaType, mediaPath.c_str(), mediaPath.size(), client_genernal_string_success_callback, client_genernal_string_error_callback, callback, callbackPara);
 }
 
+bool ChatClient::isEnableSyncDraft()
+{
+    return WFClient::isEnableSyncDraft();
+}
+
+DomainInfo ChatClient::getDomainInfo(const std::string &domainId, bool refresh)
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getListenedChannels(&len);
+    std::string str = convertDllString(pstr, len);
+    DomainInfo domainInfo;
+    domainInfo.fromJson(str);
+    return domainInfo;
+}
+
+void ChatClient::getRemoteDomains(Func<DomainInfo>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::getRemoteDomains(client_temp_success_lambda_callback<DomainInfo>, client_error_lambda_callback, new WFTempLambdaCallback<DomainInfo>(success, error), 0);
+}
+
+void ChatClient::getConversationFiles(const Conversation &conversation, const std::string &fromUser, int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::getConversationFiles(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, fromUser.c_str(), fromUser.size(), messageUid, order, count, client_temp_success_lambda_callback<FileRecord>, client_error_lambda_callback, new WFTempLambdaCallback<FileRecord>(success, error), 0);
+}
+
+void ChatClient::getMyFiles(int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::getMyFiles(messageUid, order, count, client_temp_success_lambda_callback<FileRecord>, client_error_lambda_callback, new WFTempLambdaCallback<FileRecord>(success, error), 0);
+}
+
+void ChatClient::deleteFileRecord(int64_t messageUid, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::deleteFileRecord(messageUid, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+void ChatClient::searchFiles(const std::string &keyword, const Conversation &conversation, const std::string &fromUser, int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::searchFiles(keyword.c_str(), keyword.size(), conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, fromUser.c_str(), fromUser.size(), messageUid, order, count, client_temp_success_lambda_callback<FileRecord>, client_error_lambda_callback, new WFTempLambdaCallback<FileRecord>(success, error), 0);
+}
+
+void ChatClient::searchMyFiles(const std::string &keyword, int64_t messageUid, FileRecordOrder order, int count, Func<FileRecord>::modelListFunction success, ErrorFunction error)
+{
+    WFClient::searchMyFiles(keyword.c_str(), keyword.size(), messageUid, order, count, client_temp_success_lambda_callback<FileRecord>, client_error_lambda_callback, new WFTempLambdaCallback<FileRecord>(success, error), 0);
+}
+
+void ChatClient::getAuthCode(const std::string &applicationId, int type, const std::string &host, std::function<void (const std::string &)> success, ErrorFunction error)
+{
+    WFClient::getAuthCode(applicationId.c_str(), applicationId.size(), type, host.c_str(), host.size(), client_string_success_lambda_callback, client_error_lambda_callback, new WFStringLambdaCallback(success, error), 0);
+}
+
+void ChatClient::configApplication(const std::string &applicationId, int type, int64_t timestamp, const std::string &nonce, const std::string &signature, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::configApplication(applicationId.c_str(), applicationId.size(), type, timestamp, nonce.c_str(), nonce.size(), signature.c_str(), signature.size(), client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+bool ChatClient::isCommercialServer()
+{
+    return WFClient::isCommercialServer();
+}
+
+bool ChatClient::isReceiptEnabled()
+{
+    return WFClient::isReceiptEnabled();
+}
+
+bool ChatClient::isGroupReceiptEnabled()
+{
+    return WFClient::isGroupReceiptEnabled();
+}
+
+bool ChatClient::isGlobalDisableSyncDraft()
+{
+    return WFClient::isGlobalDisableSyncDraft();
+}
+
+bool ChatClient::isMeshEnabled()
+{
+    return WFClient::isMeshEnabled();
+}
+
+UserCustomState ChatClient::getMyCustomState()
+{
+    size_t len = 0;
+    const char* pstr = WFClient::getMyCustomState(&len);
+    std::string str = convertDllString(pstr, len);
+    UserCustomState customState;
+    customState.fromJson(str);
+    return customState;
+}
+
+void ChatClient::setMyCustomState(const std::string &state, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::setMyCustomState(state.c_str(), state.size(), client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+void ChatClient::watchOnlineState(int conversationType, const std::list<std::string> &targets, int watchDuration, Func<UserOnlineState>::modelListFunction success, ErrorFunction error)
+{
+    const char** users;
+    size_t *lengths;
+    int len = toStringArray(targets, &lengths, &users);
+    WFClient::watchOnlineState(conversationType, users, lengths, len, watchDuration, client_temp_success_lambda_callback<UserOnlineState>, client_error_lambda_callback, new WFTempLambdaCallback<UserOnlineState>(success, error), 0);
+}
+
+void ChatClient::unwatchOnlineState(int conversationType, const std::list<std::string> &targets, VoidSuccessFunction success, ErrorFunction error)
+{
+    const char** users;
+    size_t *lengths;
+    int len = toStringArray(targets, &lengths, &users);
+    WFClient::unwatchOnlineState(conversationType, users, lengths, len, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+bool ChatClient::isEnableUserOnlineState()
+{
+    return WFClient::isEnableUserOnlineState();
+}
+
+void ChatClient::requireLock(const std::string &lockId, int duration, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::requireLock(lockId.c_str(), lockId.size(), duration, client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
+void ChatClient::releaseLock(const std::string &lockId, VoidSuccessFunction success, ErrorFunction error)
+{
+    WFClient::releaseLock(lockId.c_str(), lockId.size(), client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
+}
+
 void ChatClient::onConnectionStatusChanged(ConnectionStatus status) {
-#if IS_QT
+#if WF_QT
     emit connectionStatusChanged(status);
 #endif
 
@@ -1302,7 +1986,7 @@ void ChatClient::onConnectionStatusChanged(ConnectionStatus status) {
     }
 }
 void ChatClient::onReceiveMessages(const std::list<Message> &messages, bool hasMore) {
-#if IS_QT
+#if WF_QT
     emit receiveMessages(messages, hasMore);
 #endif
 
@@ -1320,7 +2004,7 @@ void ChatClient::onReceiveMessages(const std::list<Message> &messages, bool hasM
 }
 
 void ChatClient::onRecallMessage(const std::string &operatorId, int64_t messageUid) {
-#if IS_QT
+#if WF_QT
     emit recalledMessage(operatorId, messageUid);
 #endif
     if (gReceiveMessageListener) {
@@ -1328,7 +2012,7 @@ void ChatClient::onRecallMessage(const std::string &operatorId, int64_t messageU
     }
 }
 void ChatClient::onDeleteMessage(int64_t messageUid) {
-#if IS_QT
+#if WF_QT
     emit deletedMessage(messageUid);
 #endif
     if (gReceiveMessageListener) {
@@ -1336,7 +2020,7 @@ void ChatClient::onDeleteMessage(int64_t messageUid) {
     }
 }
 void ChatClient::onUserInfoUpdated(const std::list<UserInfo> &userInfos) {
-#if IS_QT
+#if WF_QT
     emit userInfoUpdated(userInfos);
 #endif
     if (gUserInfoUpdateListener) {
@@ -1344,7 +2028,7 @@ void ChatClient::onUserInfoUpdated(const std::list<UserInfo> &userInfos) {
     }
 }
 void ChatClient::onGroupInfoUpdated(const std::list<GroupInfo> &groupInfos) {
-#if IS_QT
+#if WF_QT
     emit groupInfoUpdated(groupInfos);
 #endif
     if (gGroupInfoUpdateListener) {
@@ -1352,7 +2036,7 @@ void ChatClient::onGroupInfoUpdated(const std::list<GroupInfo> &groupInfos) {
     }
 }
 void ChatClient::onGroupMemberUpdated(const std::string &groupId) {
-#if IS_QT
+#if WF_QT
     emit groupMemberUpdated(groupId);
 #endif
     if (gGroupMemberUpdateListener) {
@@ -1360,7 +2044,7 @@ void ChatClient::onGroupMemberUpdated(const std::string &groupId) {
     }
 }
 void ChatClient::onContactUpdated(const std::list<std::string> &friendUids) {
-#if IS_QT
+#if WF_QT
     emit contactUpdated(friendUids);
 #endif
     if (gContactUpdateListener) {
@@ -1368,7 +2052,7 @@ void ChatClient::onContactUpdated(const std::list<std::string> &friendUids) {
     }
 }
 void ChatClient::onFriendRequestUpdated(const std::list<std::string> &newRequests) {
-#if IS_QT
+#if WF_QT
     emit friendRequestUpdated(newRequests);
 #endif
     if (gFriendRequestUpdateListener) {
@@ -1377,7 +2061,7 @@ void ChatClient::onFriendRequestUpdated(const std::list<std::string> &newRequest
 }
 
 void ChatClient::onUserSettingUpdated() {
-#if IS_QT
+#if WF_QT
     emit userSettingUpdated();
 #endif
     if (gUserSettingUpdateListener) {
@@ -1386,7 +2070,7 @@ void ChatClient::onUserSettingUpdated() {
 }
 
 void ChatClient::onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo) {
-#if IS_QT
+#if WF_QT
     emit channelInfoUpdated(channelInfo);
 #endif
     if (gChannelInfoUpdateListener) {
@@ -1396,35 +2080,35 @@ void ChatClient::onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo)
 
 void ChatClient::onMessageSendSuccess(long messageId, int64_t messageUid, int64_t timestamp)
 {
-#if IS_QT
+#if WF_QT
     emit messageSendSuccess(messageId, messageUid, timestamp);
 #endif
 }
 
 void ChatClient::onMessageSendPrepared(long messageId, int64_t timestamp)
 {
-#if IS_QT
+#if WF_QT
     emit messageSendPrepared(messageId, timestamp);
 #endif
 }
 
 void ChatClient::onMessageSendProgress(long messageId, int uploaded, int total)
 {
-#if IS_QT
+#if WF_QT
     emit messageSendProgress(messageId, uploaded, total);
 #endif
 }
 
 void ChatClient::onMessageSendUploaded(long messageId, const std::string &remoteUrl)
 {
-#if IS_QT
+#if WF_QT
     emit messageSendUploaded(messageId, remoteUrl);
 #endif
 }
 
 void ChatClient::onMessageSendFailure(long messageId, int errorCode)
 {
-#if IS_QT
+#if WF_QT
     emit messageSendFailure(messageId, errorCode);
 #endif
 }
@@ -1435,14 +2119,14 @@ void ChatClient::onVoidConextSuccess(void *pObj)
     switch (pContent->type) {
     case VoidCallbackContext::Type::CONVERSATION_TOP:
     {
-#if IS_QT
+#if WF_QT
         emit conversationTopUpdated(pContent->conversation);
 #endif
         break;
     }
     case VoidCallbackContext::Type::CONVERSATION_SILENT:
     {
-#if IS_QT
+#if WF_QT
         emit conversationSilentUpdated(pContent->conversation);
 #endif
         break;
@@ -1482,6 +2166,8 @@ void ChatClient::onVoidConextSuccess(void *pObj)
     case VoidCallbackContext::Type::MODIFY_CHANNEL_ID:
     case VoidCallbackContext::Type::LISTEN_CHANNEL_ID:
     case VoidCallbackContext::Type::DESTROY_CHANNEL_ID:
+    case VoidCallbackContext::Type::MODIFY_GROUP_MEMBER_ALIAS_ID:
+    case VoidCallbackContext::Type::MODIFY_GROUP_MEMBER_EXTRA_ID:
         break;
     }
 }
@@ -1499,11 +2185,63 @@ std::list<T> serializableFromJsonList(const std::string &jsonListStr) {
     if (document.IsArray()) {
         for (int i = 0; i < document.Size(); i++) {
             const Value& object = document[i];
-            T message;
-            Serializable *s = &message;
-            s->Unserialize(&object);
+            if constexpr (std::is_same_v<T, std::string>) {
+                if (object.IsString()) {
+                    result.push_back(object.GetString());
+                }
+            } else if constexpr (std::is_same_v<T, int>) {
+                if (object.IsInt()) {
+                    result.push_back(object.GetInt());
+                }
+            } else if constexpr (std::is_same_v<T, int64_t>) {
+                if (object.IsInt()) {
+                    result.push_back(object.GetInt());
+                } else if(object.IsInt64()) {
+                    result.push_back(object.GetInt64());
+                }
+            } else {
+                T message;
+                Serializable *s = &message;
+                s->Unserialize(&object);
 
-            result.push_back(message);
+                result.push_back(message);
+            }
+        }
+    }
+
+    return result;
+}
+
+template <typename T>
+std::map<std::string, T> serializableFromJsonMap(const std::string &jsonListStr) {
+    Document document;
+    if (document.Parse(jsonListStr).HasParseError()) {
+        printf("\nParsing to document failure(%s).\n", jsonListStr.c_str());
+        return std::map<std::string, T>();
+    }
+
+    std::map<std::string, T> result;
+
+    if (document.IsArray()) {
+        for (int i = 0; i < document.Size(); i++) {
+            const Value& object = document[i];
+            if(object.IsObject()) {
+                if(object.HasMember("key") && object.HasMember("value")) {
+                    std::string key = object["key"].GetString();
+                    if constexpr (std::is_same_v<T, std::string>) {
+                        std::string value = object["value"].GetString();
+                        result[key] = value;
+                    } else if constexpr (std::is_same_v<T, int>) {
+                        int value = object["value"].GetInt();
+                        result[key] = value;
+                    } else if constexpr (std::is_same_v<T, int64_t>) {
+                        int64_t value = object["value"].GetInt64();
+                        result[key] = value;
+                    } else {
+                        //unsupported
+                    }
+                }
+            }
         }
     }
 

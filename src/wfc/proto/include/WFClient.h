@@ -75,6 +75,8 @@ extern "C" PROTOWRAPPER_API bool WFCAPI isTcpShortLink();
 
 extern "C" PROTOWRAPPER_API void WFCAPI setLiteMode(bool liteMode);
 
+extern "C" PROTOWRAPPER_API void WFCAPI setTimeOffset(int second);
+
 extern "C" PROTOWRAPPER_API int WFCAPI getRoutePort();
 
 extern "C" PROTOWRAPPER_API void WFCAPI setDBPath(const char *cpath, size_t path_len);
@@ -142,6 +144,7 @@ extern "C" PROTOWRAPPER_API int64_t WFCAPI getServerDeltaTime();
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getCurrentUserId(size_t *retlen);
 
+extern "C" PROTOWRAPPER_API const char* WFCAPI getLogFilesPath(size_t *retlen);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getConversationInfos(const int atypes[], int types_len, const int als[], int ls_len, size_t *retlen);
 
@@ -160,6 +163,8 @@ extern "C" PROTOWRAPPER_API void WFCAPI removeConversation(int conversationType,
 extern "C" PROTOWRAPPER_API void WFCAPI setConversationTop(int conversationType, const char *ctarget, size_t target_len, int line, int isTop, fun_general_void_success_callback succCallback, fun_general_error_callback errCallback, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API void WFCAPI setConversationSlient(int conversationType, const char *ctarget, size_t target_len, int line, bool isSlient, fun_general_void_success_callback succCallback, fun_general_error_callback errCallback, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API bool WFCAPI isConversationSlient(int conversationType, const char *ctarget, size_t target_len, int line);
 
 extern "C" PROTOWRAPPER_API void WFCAPI setConversationDraft(int conversationType, const char *ctarget, size_t target_len, int line, const char *cdraft, size_t draft_len);
 
@@ -183,6 +188,8 @@ extern "C" PROTOWRAPPER_API int64_t WFCAPI setLastReceivedMessageUnRead(int conv
 
 extern "C" PROTOWRAPPER_API long WFCAPI getConversationFirstUnreadMessageId(int conversationType, const char *ctarget, size_t target_len, int line);
 
+extern "C" PROTOWRAPPER_API void WFCAPI clearRemoteConversationMessage(int conversationType, const char *ctarget, size_t target_len, int line, fun_general_void_success_callback succCallback, fun_general_error_callback errCallback, void *pObject, int objectDataType);
+
 extern "C" PROTOWRAPPER_API void WFCAPI setMediaMessagePlayed(long messageId);
 
 extern "C" PROTOWRAPPER_API bool WFCAPI setMessageLocalExtra(long messageId, const char *clocalExtra, size_t localExtra_len);
@@ -203,7 +210,11 @@ extern "C" PROTOWRAPPER_API void WFCAPI getMessagesByMessageStatusV2(int convers
 
 extern "C" PROTOWRAPPER_API void WFCAPI getMessagesByTimestampV2(int conversationType, const char *ctarget, size_t target_len, int line, const int acontTypes[], int contTypes_len, int64_t timestamp, bool direction, int count, const char *cwithUser, size_t withUser_len, fun_general_string_success_callback successCallback, fun_general_error_callback errorCallback, void *pObject, int objectDataType);
 
+extern "C" PROTOWRAPPER_API void WFCAPI getUserMessagesV2(const char *cuserId, size_t userId_len, int conversationType, const char *ctarget, size_t target_len, int line, const int acontTypes[], int contTypes_len, int64_t fromIndex, bool direction, int count, fun_general_string_success_callback successCallback, fun_general_error_callback errorCallback, void *pObject, int objectDataType);
+
 extern "C" PROTOWRAPPER_API void WFCAPI getRemoteMessages(int conversationType, const char *ctarget, size_t target_len, int line, const int acontentTypes[], int contentTypes_len, int64_t beforeUid, int count, fun_general_string_success_callback successCallback, fun_general_error_callback errorCallback, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI getRemoteMessage(int64_t messageUid, fun_general_string_success_callback successCallback, fun_general_error_callback errorCallback, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getMessage(long messageId, size_t *retlen);
 
@@ -225,11 +236,28 @@ typedef void (WFCAPI *fun_uploadMedia_progress_callback)(void *pObject, int obje
 
 extern "C" PROTOWRAPPER_API void WFCAPI uploadMedia(const char *cstrName, size_t strName_len, const char *cdata, int dataLen, int mediaType, fun_general_string_success_callback successCB, fun_general_error_callback errorCB, fun_uploadMedia_progress_callback progressCB, void *pObject, int objectDataType);
 
+extern "C" PROTOWRAPPER_API void WFCAPI getUploadUrl(const char *cstrName, size_t strName_len, int mediaType, const char *ccontentType, int contentType_Len, fun_general_string_success_callback successCB, fun_general_error_callback errorCB, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API bool WFCAPI isSupportBigFilesUpload();
+extern "C" PROTOWRAPPER_API bool WFCAPI isForceBigFilesUpload();
+
 extern "C" PROTOWRAPPER_API bool WFCAPI deleteMessage(long messageId);
+
+extern "C" PROTOWRAPPER_API bool WFCAPI batchDeleteMessages(const int64_t messageUids[], int64_t messageUids_len);
 
 extern "C" PROTOWRAPPER_API void WFCAPI clearMessages(int conversationType, const char *ctarget, size_t target_len, int line);
 
 extern "C" PROTOWRAPPER_API void WFCAPI clearMessagesBefore(int conversationType, const char *ctarget, size_t target_len, int line, int64_t before);
+
+extern "C" PROTOWRAPPER_API void WFCAPI clearMessagesKeep(int conversationType, const char *ctarget, size_t target_len, int line, int keepCount);
+
+extern "C" PROTOWRAPPER_API void WFCAPI clearUserMessagesBetween(const char *cuser, size_t user_len, int64_t start, int64_t end);
+
+extern "C" PROTOWRAPPER_API void WFCAPI clearAllMessages(bool removeAllConversation);
+
+extern "C" PROTOWRAPPER_API void WFCAPI deleteRemoteMessage(int64_t messageUid, fun_general_void_success_callback successCallback, fun_general_error_callback errorCallback, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI updateRemoteMessage(int64_t messageUid, const char *cstrcont, size_t strcont_len, bool distribute, bool updateLocal, fun_general_void_success_callback successCallback, fun_general_error_callback errorCallback, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI insertMessage(int conversationType, const char *ctarget, size_t target_len, int line, const char *cstrfrom, size_t strfrom_len, const char *cstrcont, size_t strcont_len, int status, bool notify, int64_t serverTime, size_t *retlen);
 
@@ -240,11 +268,18 @@ extern "C" PROTOWRAPPER_API void WFCAPI updateMessageStatus(long messageId, int 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getConversationRead(int conversationType, const char *ctarget, size_t target_len, int line, size_t *retlen);
 extern "C" PROTOWRAPPER_API const char* WFCAPI getMessageDelivery(int conversationType, const char *ctarget, size_t target_len, size_t *retlen);
 
+extern "C" PROTOWRAPPER_API int WFCAPI getMessageCount(int conversationType, const char *ctarget, size_t target_len, int line);
+extern "C" PROTOWRAPPER_API int WFCAPI getConversationMessageCount(const int atypes[], int types_len, const int als[], int ls_len);
+
+extern "C" PROTOWRAPPER_API const char* WFCAPI getMessageCountByDay(int conversationType, const char *ctarget, size_t target_len, int line, const int acontentTypes[], int contentTypes_len, int64_t startTime, int64_t endTime, size_t *retlen);
+
 extern "C" PROTOWRAPPER_API const char* WFCAPI getUserInfo(const char *cuserId, size_t userId_len, bool refresh, const char *cgroupId, size_t groupId_len, size_t *retlen);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getUserInfos(const char** cusers, const size_t* userLengths, size_t userCount, const char *cgroupId, size_t groupId_len, size_t *retlen);
 
 extern "C" PROTOWRAPPER_API void WFCAPI searchUser(const char *ckeyword, size_t keyword_len, int searchType, int page, fun_general_string_success_callback successCB, fun_general_error_callback errorCB, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI searchUserEx(const char *ckeyword, size_t keyword_len, const char *cdomainId, size_t domainId_len, int searchType, int userType, int page, fun_general_string_success_callback successCB, fun_general_error_callback errorCB, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API bool WFCAPI isMyFriend(const char *cuserId, size_t userId_len);
 
@@ -265,6 +300,9 @@ extern "C" PROTOWRAPPER_API void WFCAPI loadFriendRequestFromRemote();
 extern "C" PROTOWRAPPER_API int WFCAPI getUnreadFriendRequestStatus();
 
 extern "C" PROTOWRAPPER_API void WFCAPI clearUnreadFriendRequestStatus();
+
+extern "C" PROTOWRAPPER_API bool WFCAPI clearFriendRequest(int direction, int64_t beforeTime);
+extern "C" PROTOWRAPPER_API bool WFCAPI deleteFriendRequest(const char *cuserId, size_t userId_len, int direction);
 
 extern "C" PROTOWRAPPER_API void WFCAPI deleteFriend(const char *cuserId, size_t userId_len, fun_general_void_success_callback successCB, fun_general_error_callback errorCB, void *pObject, int objectDataType);
 
@@ -320,6 +358,12 @@ extern "C" PROTOWRAPPER_API void WFCAPI muteGroupMember(const char *cgroupId, si
 extern "C" PROTOWRAPPER_API void WFCAPI allowGroupMember(const char *cgroupId, size_t groupId_len, bool isSet, const char** cusers, const size_t* userLengths, size_t userCount, const int alines[], int lines_len, const char *cstrCont, size_t strCont_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getFavGroups(size_t *retlen);
+
+
+extern "C" PROTOWRAPPER_API void WFCAPI getMyGroups(fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI getCommonGroups(const char *cuserId, size_t userId_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
 extern "C" PROTOWRAPPER_API const char* WFCAPI getUserSetting(int scope, const char *ckey, size_t key_len, size_t *retlen);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getUserSettings(int scope, size_t *retlen);
@@ -331,9 +375,13 @@ extern "C" PROTOWRAPPER_API bool WFCAPI isFavGroup(const char *cgroupId, size_t 
 
 extern "C" PROTOWRAPPER_API void WFCAPI setFavGroup(const char *cgroupId, size_t groupId_len, bool fav, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
+extern "C" PROTOWRAPPER_API bool WFCAPI isUserEnableReceipt();
+extern "C" PROTOWRAPPER_API void WFCAPI setUserEnableReceipt(bool enable, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
+
 extern "C" PROTOWRAPPER_API const char* WFCAPI getFavUsers(size_t *retlen);
 extern "C" PROTOWRAPPER_API bool WFCAPI isFavUser(const char *cuserId, size_t userId_len);
-extern "C" PROTOWRAPPER_API void WFCAPI setFavUser(const char *cuserId, size_t userId_len, bool fav, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj);
+extern "C" PROTOWRAPPER_API void WFCAPI setFavUser(const char *cuserId, size_t userId_len, bool fav, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
 
 extern "C" PROTOWRAPPER_API void WFCAPI modifyMyInfo(int type, const char *value, size_t len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
@@ -348,6 +396,10 @@ extern "C" PROTOWRAPPER_API bool WFCAPI isHiddenGroupMemberName(const char *cgro
 
 extern "C" PROTOWRAPPER_API void WFCAPI setHiddenGroupMemberName(const char *cgroupId, size_t groupId_len, bool hidden, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
+
+
+extern "C" PROTOWRAPPER_API bool WFCAPI isEnableSyncDraft();
+
 extern "C" PROTOWRAPPER_API void WFCAPI joinChatroom(const char *cchatroomId, size_t chatroomId_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API void WFCAPI quitChatroom(const char *cchatroomId, size_t chatroomId_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
@@ -355,6 +407,8 @@ extern "C" PROTOWRAPPER_API void WFCAPI quitChatroom(const char *cchatroomId, si
 extern "C" PROTOWRAPPER_API void WFCAPI getChatroomInfo(const char *cchatroomId, size_t chatroomId_len, int64_t updateDt, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API void WFCAPI getChatroomMemberInfo(const char *cchatroomId, size_t chatroomId_len, int maxCount, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API const char* WFCAPI getJoinedChatroomId(size_t *retlen);
 
 extern "C" PROTOWRAPPER_API void WFCAPI createChannel(const char *cchannelName, size_t channelName_len, const char *cchannelPortrait, size_t channelPortrait_len, const char *cdesc, size_t desc_len, const char *cextra, size_t extra_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
@@ -372,12 +426,49 @@ extern "C" PROTOWRAPPER_API const char* WFCAPI getMyChannels(size_t *retlen);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getListenedChannels(size_t *retlen);
 
+extern "C" PROTOWRAPPER_API void WFCAPI getRemoteListenedChannels(fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
+
 extern "C" PROTOWRAPPER_API void WFCAPI destoryChannel(const char *cchannelId, size_t channelId_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 
 extern "C" PROTOWRAPPER_API const char* WFCAPI getAppPath(size_t *retlen);
 
+
+extern "C" PROTOWRAPPER_API const char* WFCAPI getDomainInfo(const char *cdomainId, size_t domainId_len, bool refresh, size_t *retlen);
+extern "C" PROTOWRAPPER_API void WFCAPI getRemoteDomains(fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+
+
+extern "C" PROTOWRAPPER_API void WFCAPI getConversationFiles(int conversationType, const char *ctarget, size_t target_len, int line, const char *cfromUser, size_t fromUser_len, int64_t messageUid, int order, int count, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+extern "C" PROTOWRAPPER_API void WFCAPI getMyFiles(int64_t messageUid, int order, int count, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+extern "C" PROTOWRAPPER_API void WFCAPI deleteFileRecord(int64_t messageUid, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+extern "C" PROTOWRAPPER_API void WFCAPI searchFiles(const char *ckeyword, size_t keyword_len, int conversationType, const char *ctarget, size_t target_len, int line, const char *cfromUser, size_t fromUser_len, int64_t messageUid, int order, int count, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+extern "C" PROTOWRAPPER_API void WFCAPI searchMyFiles(const char *ckeyword, size_t keyword_len, int64_t messageUid, int order, int count, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+
 extern "C" PROTOWRAPPER_API void WFCAPI getAuthorizedMediaUrl(long long messageUid, int mediaType, const char *cmediaPath, size_t mediaPath_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
 
+
+extern "C" PROTOWRAPPER_API void WFCAPI getAuthCode(const char *capplicationId, size_t applicationId_len, int type, const char *chost, size_t host_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+extern "C" PROTOWRAPPER_API void WFCAPI configApplication(const char *capplicationId, size_t applicationId_len, int type, int64_t timestamp, const char *nonce, size_t nonce_len, const char *csignature, size_t signature_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+
+extern "C" PROTOWRAPPER_API bool WFCAPI isCommercialServer();
+extern "C" PROTOWRAPPER_API bool WFCAPI isReceiptEnabled();
+extern "C" PROTOWRAPPER_API bool WFCAPI isGroupReceiptEnabled();
+extern "C" PROTOWRAPPER_API bool WFCAPI isGlobalDisableSyncDraft();
+extern "C" PROTOWRAPPER_API bool WFCAPI isMeshEnabled();
+
+extern "C" PROTOWRAPPER_API const char* WFCAPI getMyCustomState(size_t *retlen);
+extern "C" PROTOWRAPPER_API void WFCAPI setMyCustomState(const char *cstate, size_t state_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+extern "C" PROTOWRAPPER_API void WFCAPI watchOnlineState(int conversationType, const char** ctargets, const size_t* targetLengths, size_t targetCount, int watchDuration, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI unwatchOnlineState(int conversationType, const char** ctargets, const size_t* targetLengths, size_t targetCount, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
+
+extern "C" PROTOWRAPPER_API bool WFCAPI isEnableUserOnlineState();
+
+extern "C" PROTOWRAPPER_API void WFCAPI sendConferenceRequest(long long sessionId, const char *croomId, size_t roomId_len, const char *crequest, size_t request_len, bool advance, const char *cdata, size_t data_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI requireLock(const char *clockId, size_t lockId_len, int duration, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
+
+extern "C" PROTOWRAPPER_API void WFCAPI releaseLock(const char *clockId, size_t lockId_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObject, int objectDataType);
 }
 
 #endif /* WFClient_h */
