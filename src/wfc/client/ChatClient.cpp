@@ -87,6 +87,10 @@ void WFCAPI client_channelInfo_update_callback(const char *cchannelInfo, size_t 
     ChatClient::Instance()->onChannelInfoUpdated(serializableFromJsonList<ChannelInfo>(std::string(cchannelInfo, channelInfo_len)));
 }
 
+static ConferenceEventListener *gConferenceEventListener = NULL;
+void WFCAPI client_conference_event_callback(const char *eventData, size_t eventData_len) {
+    ChatClient::Instance()->onConferenceEvent(std::string(eventData, eventData));
+}
 
 static void WFCAPI client_genernal_void_success_callback(void *pObj, int dataType) {
     if(pObj) {
@@ -342,6 +346,11 @@ void ChatClient::setChannelInfoUpdateListener(ChannelInfoUpdateListener *listene
 	gChannelInfoUpdateListener = listener;
 }
 
+void ChatClient::setConferenceEventListener(ConferenceEventListener *listener) {
+    gConferenceEventListener = listener;
+}
+
+
 void ChatClient::setDefaultPortraitProvider(DefaultPortraitProvider *provider)
 {
     groupPortraitProvider = provider;
@@ -455,7 +464,8 @@ int64_t ChatClient::connect(const std::string & userId, const std::string &token
     WFClient::setFriendRequestListener(client_friendRequest_update_callback);
     WFClient::setSettingUpdateListener(client_user_setting_update_callback);
     WFClient::setChannelInfoUpdateListener(client_channelInfo_update_callback);
-    
+    WFClient::setConferenceEventListener(client_conference_event_callback);
+
     return WFClient::connect2Server(userId.c_str(), userId.size(), token.c_str(), token.size());
 }
 
@@ -469,6 +479,7 @@ ChatClient::ChatClient()
 	registerMessage(&TextMessageContent::sPrototype);
     registerMessage(&CallStartMessageContent::sPrototype);
     registerMessage(&AddGroupMemberNotificationContent::sPrototype);
+    registerMessage(&CallAddParticipantMessageContent::sPrototype);
     registerMessage(&RejectJoinGroupNotificationContent::sPrototype);
     registerMessage(&CreateGroupNotificationContent::sPrototype);
     registerMessage(&DismissGroupNotificationContent::sPrototype);
@@ -1113,7 +1124,7 @@ void WFCAPI client_get_upload_url_success_lambda_callback(void *pObject, int dat
 }
 
 void ChatClient::getUploadUrl(const std::string &fileName, MediaType mediaType, const std::string &mimeType, std::function<void(const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type)> callback, ErrorFunction errorcallback) {
-    WFClient::getUploadUrl(fileName.c_str(), fileName.size(), mediaType, mimeType.c_str(), mimeType.size(), client_get_upload_url_success_lambda_callback, client_error_lambda_callback, NULL, new WFGetUploadUrlLambdaCallback(callback, errorcallback), 0);
+    WFClient::getUploadUrl(fileName.c_str(), fileName.size(), mediaType, mimeType.c_str(), mimeType.size(), client_get_upload_url_success_lambda_callback, client_error_lambda_callback, new WFGetUploadUrlLambdaCallback(callback, errorcallback), 0);
 }
 
 bool ChatClient::isSupportBigFilesUpload()
@@ -1976,6 +1987,10 @@ void ChatClient::releaseLock(const std::string &lockId, VoidSuccessFunction succ
     WFClient::releaseLock(lockId.c_str(), lockId.size(), client_void_success_lambda_callback, client_error_lambda_callback, new WFVoidLambdaCallback(success, error), 0);
 }
 
+void ChatClient::sendConferenceRequest(long long sessionId, const std::string &roomId, const std::string &request, bool advance, const std::string &data, GeneralStringCallback *callback, int objectDataType) {
+    WFClient::sendConferenceRequest(sessionId, roomId.c_str(), roomId.size(), request.c_str(), request.size(), advance, data.c_str(), data.size(), client_genernal_string_success_callback, client_genernal_string_error_callback, callback, objectDataType);
+}
+
 void ChatClient::onConnectionStatusChanged(ConnectionStatus status) {
 #if WF_QT
     emit connectionStatusChanged(status);
@@ -2075,6 +2090,15 @@ void ChatClient::onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo)
 #endif
     if (gChannelInfoUpdateListener) {
         gChannelInfoUpdateListener->onChannelInfoUpdated(channelInfo);
+    }
+}
+
+void ChatClient::onConferenceEvent(const std::string &event) {
+#if IS_QT
+    emit conferenceEvent(event);
+#endif
+    if (gConferenceEventListener) {
+        gConferenceEventListener->onConferenceEvent(event);
     }
 }
 

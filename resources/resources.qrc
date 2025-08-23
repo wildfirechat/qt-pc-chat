@@ -41,5 +41,6 @@
         <file>images/chats_menu.png</file>
         <file>images/chatbox_scissors.png</file>
         <file>images/loading.gif</file>
+        <file>voip_web/index.html</file>
     </qresource>
 </RCC>

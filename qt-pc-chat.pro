@@ -1,4 +1,4 @@
-QT       += core gui network svg xml multimedia
+QT       += core gui network svg xml multimedia webenginewidgets webchannel
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -89,6 +89,8 @@ SOURCES += \
     src/pages/utility/badgebutton.cpp \
     src/pages/utility/defaultportraitfactory.cpp \
     src/pages/utility/loadingdialog.cpp \
+    src/pages/voip/callwebinterface.cpp \
+    src/pages/voip/singlecallwebviewwidget.cpp \
     src/tools/imageloader.cpp \
     src/tools/timeformatter.cpp \
     src/vendor/ezviewer/imageviewer_config.cpp \
@@ -97,6 +99,7 @@ SOURCES += \
     src/vendor/qrcode/qrcodegen.cpp \
     src/wfc/client/ChatClient.cpp \
     src/wfc/message/AddGroupMemberNotificationContent.cpp \
+    src/wfc/message/CallAddParticipantMessageContent.cpp \
     src/wfc/message/CallStartMessageContent.cpp \
     src/wfc/message/ChangeGroupNameNotificationContent.cpp \
     src/wfc/message/ChangeGroupPortraitNotificationContent.cpp \
@@ -150,6 +153,7 @@ SOURCES += \
     src/wfc/model/UserOnlineState.cpp \
     src/wfc/model/UserSettingEntry.cpp \
     src/wfc/model/uploadmediaurlentry.cpp \
+    src/wfc/model/callparticipant.cpp \
     src/wfc/utility/JsonTools.cpp \
     src/wfc/utility/Serializable.cpp \
     src/vendor/zenshot/commands/addcommand.cpp \
@@ -323,6 +327,8 @@ HEADERS += \
     src/pages/utility/badgebutton.h \
     src/pages/utility/defaultportraitfactory.h \
     src/pages/utility/loadingdialog.h \
+    src/pages/voip/callwebinterface.h \
+    src/pages/voip/singlecallwebviewwidget.h \
     src/tools/imageloader.h \
     src/tools/timeformatter.h \
     src/vendor/ezviewer/imageviewer_config.h \
@@ -332,6 +338,7 @@ HEADERS += \
     src/wfc/client/ChatClient.h \
     src/wfc/enum/WFEnums.h \
     src/wfc/message/AddGroupMemberNotificationContent.h \
+    src/wfc/message/CallAddParticipantMessageContent.h \
     src/wfc/message/CallStartMessageContent.h \
     src/wfc/message/ChangeGroupNameNotificationContent.h \
     src/wfc/message/ChangeGroupPortraitNotificationContent.h \
@@ -385,6 +392,7 @@ HEADERS += \
     src/wfc/model/UserOnlineState.h \
     src/wfc/model/UserSettingEntry.h \
     src/wfc/model/uploadmediaurlentry.h \
+    src/wfc/model/callparticipant.h \
     src/wfc/proto/include/WFClient.h \
     src/wfc/utility/JsonTools.h \
     src/wfc/utility/Serializable.h \

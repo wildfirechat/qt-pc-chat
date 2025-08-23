@@ -28,6 +28,9 @@ void MessagePayload::Unserialize(const void *pvalue) {
 //            std::string pushContent;
     getValue(value, "pushContent", pushContent);
 
+//            std::string pushData;
+    getValue(value, "pushData", pushData);
+
 //            std::string content;
     getValue(value, "content", content);
 
@@ -73,6 +76,10 @@ void MessagePayload::Serialize(void *pwriter) const  {
 //            std::string pushContent;
     writer.String("pushContent");
     writer.String(pushContent);
+
+//            std::string pushData;
+    writer.String("pushData");
+    writer.String(pushData);
 
 //            std::string content;
     writer.String("content");

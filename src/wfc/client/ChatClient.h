@@ -21,6 +21,7 @@
 #include "../message/UnknownMessageContent.h"
 #include "../message/CallStartMessageContent.h"
 #include "../message/AddGroupMemberNotificationContent.h"
+#include "../message/CallAddParticipantMessageContent.h"
 #include "../message/RejectJoinGroupNotificationContent.h"
 #include "../message/CreateGroupNotificationContent.h"
 #include "../message/DismissGroupNotificationContent.h"
@@ -167,6 +168,16 @@ public:
     virtual void onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo) = 0;
 };
 
+/*
+ 会议事件
+ */
+class ConferenceEventListener {
+public:
+    ConferenceEventListener() {}
+    virtual ~ConferenceEventListener() {}
+
+    virtual void onConferenceEvent(const std::string &event) = 0;
+};
 
 /**
  事件回调，一般都是一次性的。
@@ -354,6 +365,7 @@ signals:
     void friendRequestUpdated(const std::list<std::string> &newRequests);
     void userSettingUpdated();
     void channelInfoUpdated(const std::list<ChannelInfo> &channelInfo);
+    void conferenceEvent(const std::string &event);
     void messageSendSuccess(long messageId, int64_t messageUid, int64_t timestamp);
     void messageSendPrepared(long messageId, int64_t timestamp);
     void messageSendProgress(long messageId, int uploaded, int total);
@@ -435,6 +447,13 @@ public:
 	@param listener 接受消息监听
 	*/
 	void setChannelInfoUpdateListener(ChannelInfoUpdateListener *listener);
+
+    /**
+    设置会议事件监听，在connect之前调用
+
+    @param listener 接受消息监听
+    */
+    void setConferenceEventListener(ConferenceEventListener *listener);
 
     /**
      * @brief 设置群组默认头像生成器
@@ -1620,6 +1639,19 @@ public:
     bool isEnableUserOnlineState();
     void requireLock(const std::string &lockId, int duration, VoidSuccessFunction success, ErrorFunction error);
     void releaseLock(const std::string &lockId, VoidSuccessFunction success, ErrorFunction error);
+
+    /**
+     * @brief sendConferenceRequest
+     * @param sessionId
+     * @param roomId
+     * @param request
+     * @param advance
+     * @param data
+     * @param callback
+     * @param objectDataType
+     */
+    void sendConferenceRequest(long long sessionId, const std::string &roomId, const std::string &request, bool advance, const std::string &data, GeneralStringCallback *callback, int objectDataType);
+
     /**
      payload转为content，一般客户不需要使用
      */
@@ -1647,6 +1679,7 @@ public:
     void onFriendRequestUpdated(const std::list<std::string> &newRequests);
     void onUserSettingUpdated();
     void onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo);
+    void onConferenceEvent(const std::string &event);
 
     void onMessageSendSuccess(long messageId, int64_t messageUid, int64_t timestamp);
     void onMessageSendPrepared(long messageId, int64_t timestamp);

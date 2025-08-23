@@ -16,6 +16,7 @@ public:
     int contentType;
 	std::string searchableContent;
     std::string pushContent;
+    std::string pushData;
     std::string content;
     std::string binaryContent;
     std::string localContent;

@@ -446,7 +446,6 @@ extern "C" PROTOWRAPPER_API void WFCAPI searchMyFiles(const char *ckeyword, size
 
 extern "C" PROTOWRAPPER_API void WFCAPI getAuthorizedMediaUrl(long long messageUid, int mediaType, const char *cmediaPath, size_t mediaPath_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
 
-
 extern "C" PROTOWRAPPER_API void WFCAPI getAuthCode(const char *capplicationId, size_t applicationId_len, int type, const char *chost, size_t host_len, fun_general_string_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
 extern "C" PROTOWRAPPER_API void WFCAPI configApplication(const char *capplicationId, size_t applicationId_len, int type, int64_t timestamp, const char *nonce, size_t nonce_len, const char *csignature, size_t signature_len, fun_general_void_success_callback successBlock, fun_general_error_callback errorBlock, void *pObj, int objectDataType);
 
