@@ -1113,7 +1113,7 @@ void WFCAPI client_get_upload_url_success_lambda_callback(void *pObject, int dat
 }
 
 void ChatClient::getUploadUrl(const std::string &fileName, MediaType mediaType, const std::string &mimeType, std::function<void(const std::string &uploadUrl, const std::string &mediaUrl, const std::string &backupUploadUrl, int type)> callback, ErrorFunction errorcallback) {
-    WFClient::getUploadUrl(fileName.c_str(), fileName.size(), mediaType, mimeType.c_str(), mimeType.size(), client_get_upload_url_success_lambda_callback, client_error_lambda_callback, NULL, new WFGetUploadUrlLambdaCallback(callback, errorcallback), 0);
+    WFClient::getUploadUrl(fileName.c_str(), fileName.size(), mediaType, mimeType.c_str(), mimeType.size(), client_get_upload_url_success_lambda_callback, client_error_lambda_callback, new WFGetUploadUrlLambdaCallback(callback, errorcallback), 0);
 }
 
 bool ChatClient::isSupportBigFilesUpload()
