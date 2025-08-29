@@ -982,7 +982,7 @@ const Message ChatClient::sendMessage(const Conversation &conversation, const Me
                     if(WFClient::isForceBigFilesUpload()) {
                         bigFileUpload = true;
                     } else {
-                        bigFileUpload = true;//isLargerThan200MB(mediaContent.localPath);
+                        bigFileUpload = isLargerThan200MB(mediaContent.localPath);
                     }
                 }
             }
