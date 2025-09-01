@@ -13,6 +13,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <QtGlobal>
 
 #include "../vendor/rapidjson/rapidjson.h"
 #include "../vendor/rapidjson/writer.h"
