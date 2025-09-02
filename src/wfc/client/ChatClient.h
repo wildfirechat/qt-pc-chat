@@ -367,6 +367,7 @@ signals:
 
     void conversationTopUpdated(const Conversation &conversation);
     void conversationSilentUpdated(const Conversation &conversation);
+    void conversationRemoved(const Conversation &conversation);
 #endif
 
 

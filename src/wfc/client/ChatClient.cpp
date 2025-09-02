@@ -672,6 +672,9 @@ const std::list<ConversationSearchInfo> ChatClient::searchConversation(const std
 
 void ChatClient::removeConversation(const Conversation &conversation,bool clearMessage) {
     WFClient::removeConversation(conversation.conversationType, conversation.target.c_str(), conversation.target.size(), conversation.line, clearMessage);
+#if WF_QT
+    emit conversationRemoved(conversation);
+#endif
 }
 
 void ChatClient::setConversationTop(const Conversation &conversation, int top, GeneralVoidCallback *callback, int callbackPara) {
