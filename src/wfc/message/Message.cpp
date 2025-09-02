@@ -133,4 +133,37 @@ Message &Message::operator=(const Message &m)
     to = m.to;
     return *this;
 }
+
+Message::Message(Message &&other) noexcept {
+    conversation = other.conversation;
+    from = other.from;
+    content = other.content;
+    other.content = nullptr; // 转移资源所有权
+    messageId = other.messageId;
+    direction = other.direction;
+    status = other.status;
+    messageUid = other.messageUid;
+    timestamp = other.timestamp;
+    to = other.to;
+}
+
+Message &Message::operator=(Message &&other) noexcept {
+    if (this != &other) {
+        if(content != nullptr) {
+            delete content;
+        }
+        content = other.content;
+        other.content = nullptr; // 转移资源所有权
+        conversation = other.conversation;
+        from = other.from;
+        messageId = other.messageId;
+        direction = other.direction;
+        status = other.status;
+        messageUid = other.messageUid;
+        timestamp = other.timestamp;
+        to = other.to;
+    }
+    return *this;
+}
+
 };

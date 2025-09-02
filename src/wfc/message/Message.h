@@ -33,19 +33,8 @@ public:
     virtual ~Message() {if(content){delete content; content = NULL;}}
     Message(const Message &m);
     Message &operator=(const Message& other);
-    Message(Message&& other) noexcept : content(other.content) {
-        other.content = nullptr; // 转移资源所有权
-    }
-    Message& operator=(Message&& other) noexcept {
-        if (this != &other) {
-            if(content != nullptr) {
-                delete content;
-            }
-            content = other.content;
-            other.content = nullptr; // 转移资源所有权
-        }
-        return *this;
-    }
+    Message(Message&& other) noexcept;
+    Message& operator=(Message&& other) noexcept;
     
     Conversation conversation;
     
