@@ -1657,7 +1657,7 @@ void ChatClient::setUserSetting(UserSettingScope scope, const std::string &key, 
     WFClient::setUserSetting(scope, key.c_str(), key.size(), value.c_str(), value.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newUserSettingContext(scope, key, value, callback, callbackPara), 0);
 }
 
-void ChatClient::modifyMyInfo(int type, const std::string &value, GeneralVoidCallback *callback, int callbackPara) {
+void ChatClient::modifyMyInfo(ModifyMyInfoType type, const std::string &value, GeneralVoidCallback *callback, int callbackPara) {
     WFClient::modifyMyInfo(type, value.c_str(), value.size(), client_context_void_success_callback, client_genernal_void_error_callback, VoidCallbackContext::newVoidContext(VoidCallbackContext::Type::MODIFY_MY_INFO, callback, callbackPara), 0);
 }
 

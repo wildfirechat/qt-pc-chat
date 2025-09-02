@@ -1417,7 +1417,7 @@ public:
 
      @discuss 性别属性是int类型，修改时需要转为字符串类型
      */
-    void modifyMyInfo(int type, const std::string &value, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
+    void modifyMyInfo(ModifyMyInfoType type, const std::string &value, GeneralVoidCallback *callback = NULL, int callbackPara = 0);
 
     bool isUserEnableReceipt();
     void setUserEnableReceipt(bool enable, VoidSuccessFunction success, ErrorFunction error);
