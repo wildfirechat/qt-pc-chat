@@ -13,7 +13,8 @@ QString CallWebInterface::fromWeb(const QString &message) {
 
 void CallWebInterface::onReady()
 {
-    emit startCall(mConversation.conversationType, QString::fromStdString(mConversation.target), mConversation.line, mReceivers, mAudioOnly);
+    // TODO
+    emit emitToVoip(QString::fromStdString(mConversation.target));
 }
 
 void CallWebInterface::sendConferenceRequest(int requestId, long long sessionId, const QString &roomId, const QString &request, bool advance, const QString &data) {
@@ -72,15 +73,15 @@ void CallWebInterface::onSuccess(int dataType, int64_t messageUid, int64_t times
 
 void CallWebInterface::onPrepared(int dataType, int messageId, int64_t timestamp)
 {
-    
+
 }
 
 void CallWebInterface::onProgress(int dataType, int uploaded, int total)
 {
-    
+
 }
 
 void CallWebInterface::onUploaded(int dataType, const std::string &remoteUrl)
 {
-    
+
 }

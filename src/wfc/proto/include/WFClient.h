@@ -79,6 +79,8 @@ extern "C" PROTOWRAPPER_API void WFCAPI setTimeOffset(int second);
 
 extern "C" PROTOWRAPPER_API int WFCAPI getRoutePort();
 
+extern "C" PROTOWRAPPER_API const char* WFCAPI getHost(size_t *retlen);
+
 extern "C" PROTOWRAPPER_API void WFCAPI setDBPath(const char *cpath, size_t path_len);
 
 extern "C" PROTOWRAPPER_API void WFCAPI setConnectionStatusListener(fun_connection_callback callback);

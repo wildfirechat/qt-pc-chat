@@ -409,6 +409,12 @@ int ChatClient::getRoutePort() {
     return WFClient::getRoutePort();
 }
 
+const std::string ChatClient::getHost() {
+    size_t len = 0;
+    const char* str = WFClient::getHost(&len);
+    return convertDllString(str, len);
+}
+
 void ChatClient::setDBPath(const std::string &dbPath)
 {
 

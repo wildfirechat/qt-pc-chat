@@ -98,7 +98,7 @@ class UserInfoUpdateListener {
 public:
     UserInfoUpdateListener() {}
     virtual ~UserInfoUpdateListener() {}
-    
+
     virtual void onUserInfoUpdated(const std::list<UserInfo> &userInfos) = 0;
 };
 
@@ -109,7 +109,7 @@ class GroupInfoUpdateListener {
 public:
     GroupInfoUpdateListener() {}
     virtual ~GroupInfoUpdateListener() {}
-    
+
     virtual void onGroupInfoUpdated(const std::list<GroupInfo> &groupInfos) = 0;
 };
 
@@ -120,7 +120,7 @@ class GroupMemberUpdateListener {
 public:
     GroupMemberUpdateListener() {}
     virtual ~GroupMemberUpdateListener() {}
-    
+
     virtual void onGroupMemberUpdated(const std::string &groupId) = 0;
 };
 
@@ -131,7 +131,7 @@ class ContactUpdateListener {
 public:
     ContactUpdateListener() {}
     virtual ~ContactUpdateListener() {}
-    
+
     virtual void onContactUpdated(const std::list<std::string> &friendUids) = 0;
 };
 
@@ -142,7 +142,7 @@ class FriendRequestUpdateListener {
 public:
     FriendRequestUpdateListener() {}
     virtual ~FriendRequestUpdateListener() {}
-    
+
     virtual void onFriendRequestUpdated(const std::list<std::string> &newRequests) = 0;
 };
 
@@ -153,7 +153,7 @@ class UserSettingUpdateListener {
 public:
     UserSettingUpdateListener() {}
     virtual ~UserSettingUpdateListener() {}
-    
+
     virtual void onUserSettingUpdated() = 0;
 };
 
@@ -164,7 +164,7 @@ class ChannelInfoUpdateListener {
 public:
     ChannelInfoUpdateListener() {}
     virtual ~ChannelInfoUpdateListener() {}
-    
+
     virtual void onChannelInfoUpdated(const std::list<ChannelInfo> &channelInfo) = 0;
 };
 
@@ -531,6 +531,12 @@ public:
      * @return
      */
     int getRoutePort();
+
+    /**
+     * @brief 返回SDK的Host
+     * @return
+     */
+    const std::string getHost();
 
     /**
      * @brief 设置数据库目录
