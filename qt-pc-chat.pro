@@ -90,8 +90,8 @@ SOURCES += \
     src/pages/utility/defaultportraitfactory.cpp \
     src/pages/utility/loadingdialog.cpp \
     src/pages/voip/avenginekitproxy.cpp \
-    src/pages/voip/callwebinterface.cpp \
-    src/pages/voip/singlecallwebviewwidget.cpp \
+    src/pages/voip/voipwebinterface.cpp \
+    src/pages/voip/voipwebviewwidget.cpp \
     src/tools/imageloader.cpp \
     src/tools/timeformatter.cpp \
     src/vendor/ezviewer/imageviewer_config.cpp \
@@ -329,8 +329,8 @@ HEADERS += \
     src/pages/utility/defaultportraitfactory.h \
     src/pages/utility/loadingdialog.h \
     src/pages/voip/avenginekitproxy.h \
-    src/pages/voip/callwebinterface.h \
-    src/pages/voip/singlecallwebviewwidget.h \
+    src/pages/voip/voipwebinterface.h \
+    src/pages/voip/voipwebviewwidget.h \
     src/tools/imageloader.h \
     src/tools/timeformatter.h \
     src/vendor/ezviewer/imageviewer_config.h \

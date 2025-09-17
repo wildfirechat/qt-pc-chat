@@ -13,9 +13,8 @@
 
 #include "../../wfc/client/ChatClient.h"
 #include "../../wfc/model/Conversation.h"
-// #include "../../wfc/messages/Message.h"
 
-class SingleCallWebViewWidget;
+class VoipWebViewWidget;
 
 /**
  * Qt版本的音视频通话代理类
@@ -49,7 +48,7 @@ public:
     /**
      * 设置音视频通话WebView
      */
-    void setVoipWebview(SingleCallWebViewWidget* webview);
+    void setVoipWebview(VoipWebViewWidget* webview);
 
     /**
      * 发起音视频通话
@@ -168,7 +167,7 @@ private:
     bool m_hasWebcam;
 
     // UI相关
-    SingleCallWebViewWidget* m_voipWebview;
+    VoipWebViewWidget* m_voipWebview;
     bool m_debug;
 
     // 回调函数

@@ -31,8 +31,16 @@
 #include "emojdialog.h"
 #include "atmemberdelegate.h"
 #include "atmemberlistview.h"
-#include "../voip/singlecallwebviewwidget.h"
+#include "../voip/voipwebviewwidget.h"
+#include "../voip/avenginekitproxy.h"
 #include <QMediaPlayer>
+#include <QCamera>
+#include <QCameraInfo>
+// #include <QCameraViewfinder>
+#include <QAudioInput>
+#include <QAudioDeviceInfo>
+#include <QDebug>
+
 
 
 #define INPUT_SPLITER_STATE "input_splitter/state"
@@ -40,6 +48,9 @@
 ChatDetailWidget::ChatDetailWidget(QWidget *parent) : QWidget(parent), isAtBottom(true)
 {
     setupUI();
+
+    // 初始化AvEngineKitProxy
+    AvEngineKitProxy::instance()->setup(WFCLib::ChatClient::Instance());
 }
 
 ChatDetailWidget::~ChatDetailWidget()
@@ -51,22 +62,22 @@ void ChatDetailWidget::setupUI()
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
-    
+
     // 顶部标题栏
     QWidget *titleWidget = new QWidget(this);
     titleWidget->setFixedHeight(50);
     titleWidget->setStyleSheet("background-color: #f5f5f5; border-bottom: 1px solid #e0e0e0;");
     QHBoxLayout *titleLayout = new QHBoxLayout(titleWidget);
     titleLayout->setContentsMargins(15, 0, 15, 0);
-    
+
     partnerNameLabel = new QLabel("聊天对象", this);
     partnerNameLabel->setStyleSheet("font-size: 16px; font-weight: bold;");
-    
+
     QPushButton *infoButton = new QPushButton(this);
     infoButton->setFixedSize(60, 30);
     infoButton->setFlat(true);
     infoButton->setIcon(QIcon(":/images/chats_menu.png"));
-    
+
     titleLayout->addWidget(partnerNameLabel);
     titleLayout->addStretch();
     titleLayout->addWidget(infoButton);
@@ -171,16 +182,16 @@ void ChatDetailWidget::setupUI()
     QVBoxLayout *inputLayout = new QVBoxLayout(inputWidget);
     inputLayout->setContentsMargins(15, 10, 15, 10);
     inputLayout->setSpacing(10);
-    
+
     // 工具按钮
     QHBoxLayout *toolLayout = new QHBoxLayout();
     toolLayout->setSpacing(15);
-    
+
     fileButton = new QPushButton("📎", this);
     fileButton->setFixedSize(30, 30);
     fileButton->setStyleSheet("QPushButton { border-radius: 15px; }"
                               "QPushButton:hover { background-color: #e9e9e9; }");
-    
+
     emojiButton = new QPushButton("😀", this);
     emojiButton->setFixedSize(30, 30);
     emojiButton->setStyleSheet("QPushButton { border-radius: 15px; }"
@@ -207,11 +218,11 @@ void ChatDetailWidget::setupUI()
     toolLayout->addWidget(voiceCallButton);
     toolLayout->addWidget(videoCallButton);
     toolLayout->addStretch();
-    
+
     // 输入框和发送按钮
     QHBoxLayout *sendLayout = new QHBoxLayout();
     sendLayout->setSpacing(10);
-    
+
     messageEdit = new InputTextEdit(this);
     messageEdit->setPlaceholderText("输入消息...");
     messageEdit->setStyleSheet("QTextEdit { border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px; }");
@@ -224,13 +235,13 @@ void ChatDetailWidget::setupUI()
     sendButton->setStyleSheet("QPushButton { background-color: #4CAF50; color: white; border-radius: 4px; }"
                              "QPushButton:hover { background-color: #45a049; }"
                              "QPushButton:pressed { background-color: #3d8b40; }");
-    
+
     sendLayout->addWidget(messageEdit);
     sendLayout->addWidget(sendButton);
-    
+
     inputLayout->addLayout(toolLayout);
     inputLayout->addLayout(sendLayout);
-    
+
     // 添加到主布局
     mainLayout->addWidget(titleWidget);
 
@@ -241,7 +252,7 @@ void ChatDetailWidget::setupUI()
     inputSplitter->addWidget(inputWidget);
 
     mainLayout->addWidget(inputSplitter);
-    
+
     // 连接信号和槽
     connect(infoButton, &QPushButton::clicked, this, &ChatDetailWidget::toggleSidePanel);
     connect(messageListView, &QListView::clicked, this, &ChatDetailWidget::onItemClicked);
@@ -285,7 +296,7 @@ void ChatDetailWidget::setupUI()
         starter->init();
     });
     connect(voiceCallButton, &QPushButton::clicked, [this]() {startCall(true);});
-    connect(videoCallButton, &QPushButton::clicked, [this]() {startCall(true);});
+    connect(videoCallButton, &QPushButton::clicked, [this]() {startCall(false);});
 
     connect(chatDelegate, &ChatDelegate::avatarRightClicked, this, &ChatDetailWidget::onAvatarRightClicked);
     connect(chatDelegate, &ChatDelegate::messageContentClicked, this, &ChatDetailWidget::onMessageContentClicked);
@@ -428,7 +439,7 @@ void ChatDetailWidget::setChatConversation(const WFCLib::Conversation &conversat
     if(!info.draft.empty()) {
         messageEdit->setText(info.draft.c_str());
     }
-    
+
     // 根据ID设置聊天对象名称
     QString partnerId = conversation.target.c_str();
 
@@ -447,7 +458,7 @@ void ChatDetailWidget::setChatConversation(const WFCLib::Conversation &conversat
         WFCLib::ChannelInfo channelInfo = WFCLib::ChatClient::Instance()->getChannelInfo(partnerId.toStdString(), true);
         partnerNameLabel->setText(channelInfo.name.c_str());
     }
-    
+
     if(playingMessageId > 0) {
         audioPlayer->stop();
         playingMessageId = 0;
@@ -547,8 +558,25 @@ void ChatDetailWidget::handlePaste() {
 }
 
 void ChatDetailWidget::startCall(bool audioOnly) {
-    SingleCallWebViewWidget *callWidget = new SingleCallWebViewWidget();
-    callWidget->show();
+    // log the route host
+    qDebug() << "Route host: " << WFCLib::ChatClient::Instance()->getHost().c_str();
+
+    // 使用AvEngineKitProxy发起通话
+    QStringList participants;
+    if (currentConversation.conversationType == WFCLib::Single_Type) {
+        // 单聊，添加对方作为参与者
+        participants.append(QString::fromStdString(currentConversation.target));
+    } else if (currentConversation.conversationType == WFCLib::Group_Type) {
+        // 群聊，需要获取群成员
+        std::list<WFCLib::GroupMember> groupMembers = WFCLib::ChatClient::Instance()->getGroupMembers(currentConversation.target, false);
+        for (const auto& member : groupMembers) {
+            if (member.memberId != WFCLib::ChatClient::Instance()->getCurrentUserId()) {
+                participants.append(QString::fromStdString(member.memberId));
+            }
+        }
+    }
+
+    AvEngineKitProxy::instance()->startCall(currentConversation, audioOnly, participants);
 }
 
 #define LOAD_REMOTE_MESSAGE_DATA_TYPE 1
@@ -713,7 +741,7 @@ void ChatDetailWidget::onUploadFile()
     if (!fileName.isEmpty()) {
         QFileInfo fileInfo(fileName);
         QString fileSize;
-        
+
         qint64 size = fileInfo.size();
         if (size < 1024)
             fileSize = QString("%1 B").arg(size);
@@ -721,7 +749,7 @@ void ChatDetailWidget::onUploadFile()
             fileSize = QString("%1 KB").arg(size / 1024.0, 0, 'f', 1);
         else
             fileSize = QString("%1 MB").arg(size / (1024.0 * 1024.0), 0, 'f', 1);
-        
+
         WFCLib::FileMessageContent fileContent;
         fileContent.localPath = fileInfo.absoluteFilePath().toStdString();
         fileContent.name = fileInfo.fileName().toStdString();

@@ -1,17 +1,19 @@
-#ifndef SINGLECALLWEBVIEWWIDGET_H
-#define SINGLECALLWEBVIEWWIDGET_H
+#ifndef VOIPWEBVIEWWIDGET_H
+#define VOIPWEBVIEWWIDGET_H
 
 #include <QWidget>
+#include <QCloseEvent>
 #include <QDebug>
 #include "../../wfc/model/Conversation.h"
 
 class QWebEngineView;
+class VoipWebInterface;
 
-class SingleCallWebViewWidget : public QWidget
+class VoipWebViewWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit SingleCallWebViewWidget(const WFCLib::Conversation &conversation, QList<QString> participants, bool audioOnly = false, QString callExtra = "", QWidget *parent = nullptr);
+    explicit VoipWebViewWidget(const QString& type, const QJsonObject& options, QWidget *parent = nullptr);
 
     /**
      * 向Web页面发送消息
@@ -26,6 +28,7 @@ protected:
 
 private:
     QWebEngineView *m_webView;
+    VoipWebInterface *m_webInterface;
 };
 
-#endif // SINGLECALLWEBVIEWWIDGET_H
+#endif // VOIPWEBVIEWWIDGET_H

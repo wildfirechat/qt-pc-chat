@@ -1,5 +1,5 @@
 #include "avenginekitproxy.h"
-#include "singlecallwebviewwidget.h"
+#include "voipwebviewwidget.h"
 #include "../../wfc/enum/WFEnums.h"
 #include <QJsonArray>
 #include <QDateTime>
@@ -66,7 +66,7 @@ void AvEngineKitProxy::setup(WFCLib::ChatClient* client)
     }
 }
 
-void AvEngineKitProxy::setVoipWebview(SingleCallWebViewWidget* webview)
+void AvEngineKitProxy::setVoipWebview(VoipWebViewWidget* webview)
 {
     m_voipWebview = webview;
 
@@ -314,7 +314,7 @@ void AvEngineKitProxy::emitToVoip(const QString& event, const QJsonObject& args)
         data["args"] = args;
 
         // 延迟发送，等待音视频页面加载完成
-        QTimer::singleShot(1000, [this, data]() {
+        QTimer::singleShot(10000, [this, data]() {
             if (m_voipWebview) {
                 QString jsonString = QJsonDocument(data).toJson(QJsonDocument::Compact);
                 m_voipWebview->sendMessageToWeb(jsonString);
@@ -405,8 +405,7 @@ void AvEngineKitProxy::showCallUI(const WFCLib::Conversation& conversation, bool
         }
     }
 
-    SingleCallWebViewWidget* callWidget = new SingleCallWebViewWidget(conversation, participants,
-                                                                      options["args"].toObject()["audioOnly"].toBool(true));
+    VoipWebViewWidget* callWidget = new VoipWebViewWidget(type, options);
     setVoipWebview(callWidget);
     callWidget->show();
 
