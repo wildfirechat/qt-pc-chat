@@ -7,8 +7,8 @@
 #include <QWebEngineView>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QAudioDeviceInfo>
-#include <QCameraInfo>
+// #include <QAudioDeviceInfo>
+// #include <QCameraInfo>
 #include <functional>
 
 #include "../../wfc/client/ChatClient.h"

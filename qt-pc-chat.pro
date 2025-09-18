@@ -92,6 +92,7 @@ SOURCES += \
     src/pages/voip/avenginekitproxy.cpp \
     src/pages/voip/voipwebinterface.cpp \
     src/pages/voip/voipwebviewwidget.cpp \
+    src/pages/voip/wfwebenginepage.cpp \
     src/tools/imageloader.cpp \
     src/tools/timeformatter.cpp \
     src/vendor/ezviewer/imageviewer_config.cpp \
@@ -331,6 +332,7 @@ HEADERS += \
     src/pages/voip/avenginekitproxy.h \
     src/pages/voip/voipwebinterface.h \
     src/pages/voip/voipwebviewwidget.h \
+    src/pages/voip/wfwebenginepage.h \
     src/tools/imageloader.h \
     src/tools/timeformatter.h \
     src/vendor/ezviewer/imageviewer_config.h \

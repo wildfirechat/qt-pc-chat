@@ -130,7 +130,7 @@ void AvEngineKitProxy::startCall(const WFCLib::Conversation& conversation, bool 
         }
     }
 
-    QString callId = QString::fromStdString(conversation.target) + QString::number(qrand() % 10000);
+    QString callId = QString::fromStdString(conversation.target) + QString::number(rand() % 10000);
     m_conversation = conversation;
     m_participants = filteredParticipants;
     m_callId = callId;
@@ -189,7 +189,7 @@ void AvEngineKitProxy::startConference(const QString& callId, bool audioOnly, co
     }
 
     QString actualCallId = callId.isEmpty() ?
-        QString::fromStdString(m_client->getCurrentUserId()) + QString::number(qrand() % 10000) : callId;
+        QString::fromStdString(m_client->getCurrentUserId()) + QString::number(rand() % 10000) : callId;
 
     m_callId = actualCallId;
     m_conversation = WFCLib::Conversation();
@@ -209,7 +209,7 @@ void AvEngineKitProxy::startConference(const QString& callId, bool audioOnly, co
     QJsonObject args;
     args["audioOnly"] = audioOnly;
     args["callId"] = actualCallId;
-    args["pin"] = pin.isEmpty() ? QString::number(qrand() % 1000000) : pin;
+    args["pin"] = pin.isEmpty() ? QString::number(rand() % 1000000) : pin;
     args["host"] = host;
     args["title"] = title;
     args["desc"] = desc;
@@ -360,7 +360,7 @@ void AvEngineKitProxy::onConferenceEvent(const QJsonObject& event)
 
 void AvEngineKitProxy::checkDevices()
 {
-    // 检查音频设备
+  /*  // 检查音频设备
     QList<QAudioDeviceInfo> audioInputs = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
     QList<QAudioDeviceInfo> audioOutputs = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
 
@@ -372,7 +372,7 @@ void AvEngineKitProxy::checkDevices()
     m_hasWebcam = !cameras.isEmpty();
 
     // 检查WebRTC支持（简化检查）
-    m_isSupportVoip = m_hasMicrophone && m_hasSpeaker;
+    m_isSupportVoip = m_hasMicrophone && m_hasSpeaker*/;
 }
 
 void AvEngineKitProxy::processQueuedEvents()

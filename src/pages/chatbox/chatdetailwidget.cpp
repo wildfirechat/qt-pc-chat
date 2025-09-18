@@ -35,10 +35,10 @@
 #include "../voip/avenginekitproxy.h"
 #include <QMediaPlayer>
 #include <QCamera>
-#include <QCameraInfo>
+// #include <QCameraInfo>
 // #include <QCameraViewfinder>
 #include <QAudioInput>
-#include <QAudioDeviceInfo>
+// #include <QAudioDeviceInfo>
 #include <QDebug>
 
 
