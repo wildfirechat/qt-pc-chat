@@ -8,7 +8,7 @@
 #include <QWebEngineView>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
-//#include <QWebEnginePage>
+#include <QWebEnginePage>
 #include "./wfwebenginepage.h"
 #include <QWebChannel>
 #include <QCloseEvent>
@@ -41,6 +41,12 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     QWebEngineProfile* profile = QWebEngineProfile::defaultProfile();
     profile->setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
 
+    // Enable WebRTC and other necessary settings
+    profile->settings()->setAttribute(QWebEngineSettings::WebRTCPublicInterfacesOnly, false);
+    profile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, true);
+    profile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+    profile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+
     // 创建并配置QWebEngineView
     m_webView = new QWebEngineView(this);
     // 创建WfWebEnginePage并设置给WebView
@@ -68,6 +74,17 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
             "});"
         );
     } });
+
+    connect(m_webView->page(), &QWebEnginePage::featurePermissionRequested,
+        [=](const QUrl &securityOrigin, QWebEnginePage::Feature feature) {
+        if (feature == QWebEnginePage::MediaAudioCapture ||
+            feature == QWebEnginePage::MediaVideoCapture) {
+            // You might want to show a native dialog here to confirm with the user,
+            // but for basic functionality, you can just accept.
+            m_webView->page()->setFeaturePermission(securityOrigin, feature, QWebEnginePage::PermissionGrantedByUser);
+        }
+    });
+
 
     // 正确的 Qt 5.15 连接方式
     // connect(m_webView->page(), &WfQWebEnginePage::javaScriptConsoleMessage,

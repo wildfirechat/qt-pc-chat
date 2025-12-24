@@ -6,6 +6,7 @@ CONFIG += c++17
 CONFIG+=sdk_no_version_check
 QMAKE_CXXFLAGS_RELEASE += -O2
 PKGCONFIG += xcb xcb-util
+QMAKE_INFO_PLIST = Info.plist
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -680,6 +681,7 @@ win32 {
     }
 }
 
+QMAKE_POST_LINK += cp $$PWD/Info.plist $$OUT_PWD/qt-pc-chat.app/Contents/Info.plist
 
 FORMS += \
     src/vendor/zenshot/setting.ui \

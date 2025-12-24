@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>qt-pc-chat</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.wildfirechat.qt-pc-chat</string>
+    <key>CFBundleName</key>
+    <string>qt-pc-chat</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app requires microphone access for VoIP calls.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>This app requires camera access for video calls.</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.12</string>
+</dict>
+</plist>
