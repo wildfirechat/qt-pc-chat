@@ -20,6 +20,8 @@
 #include "../message/Message.h"
 #include "../message/UnknownMessageContent.h"
 #include "../message/CallStartMessageContent.h"
+#include "../message/CallSignalMessageContent.h"
+#include "../message/CallAnswerMessageContent.h"
 #include "../message/AddGroupMemberNotificationContent.h"
 #include "../message/CallAddParticipantMessageContent.h"
 #include "../message/RejectJoinGroupNotificationContent.h"
