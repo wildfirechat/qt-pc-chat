@@ -116,7 +116,8 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
 
     // QString voipBaseUrl = "https://custom.wildfirechat.cn/wfim_deploy_cookbook/pages/test.html";
     // QString voipBaseUrl = "qrc:/voip_web/index.html";
-    QString voipBaseUrl = "http://localhost:8080";
+    QString voipBaseUrl = "http://localhost:8082";
+    // QString voipBaseUrl = "https://static.wildfirechat.cn/voip-conf-20250915-2.html";
 
     QString authToken = settings.value("WFC_APPSERVER_AUTH_TOKEN").toString();
     QString clientId = QString(WFCLib::ChatClient::Instance()->getClientId().c_str());
@@ -125,7 +126,11 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     // 获取短链接信息 (类似 wfc.getShortLinkInfo())
     QString server = QString(WFCLib::ChatClient::Instance()->getHost().c_str());
     QString userId = QString(WFCLib::ChatClient::Instance()->getCurrentUserId().c_str());
-    QString token = settings.value("WFC_IM_TOKEN").toString(); // 从设置中获取保存的 token
+
+    QSettings im_settings("WfcData", "WFC");
+    QString token = im_settings.value("wfc/token", "").toString();
+
+    qDebug() << "token ....voip web URL:" << token;
 
     // 处理 token，替换特殊字符 (类似 JS 版本)
     token = token.replace('+', '.').replace('/', '_').replace('=', '-');
@@ -140,7 +145,8 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     voipWebUrl += "&authToken=" + authToken;
 
     // im server info
-    voipWebUrl += "&server=" + QUrl::toPercentEncoding(server);
+    // voipWebUrl += "&server=http://" + QUrl::toPercentEncoding(server);
+    voipWebUrl += "&server=https://wildfirechat.net"; ;
     voipWebUrl += "&userId=" + userId;
     voipWebUrl += "&token=" + token;
     voipWebUrl += "&clientId=" + clientId;
@@ -155,10 +161,11 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
 
     // 加载拼接好的 URL
     qDebug() << "Loading voip web URL:" << voipWebUrl;
-    // m_webView->load(QUrl(voipWebUrl));
+    m_webView->load(QUrl(voipWebUrl));
     // m_webView->load(QUrl(voipBaseUrl));
 
-    m_webView->load(QUrl("qrc:/voip_web/index.html"));
+    //m_webView->load(QUrl("qrc:/voip_web/index.html"));
+    // m_webView->load(QUrl("https://docs.wildfirechat.cn/webrtc/abilitytest/"));
     // m_webView->load(QUrl("http://192.168.2.101:8080/"));
     // m_webView->load(QUrl("https://web.wildfirechat.cn/"));
     // m_webView->load(QUrl("https://static.wildfirechat.cn/voip-conf-20250915-2.html"));
@@ -166,12 +173,10 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     // 注册到AvEngineKitProxy
     AvEngineKitProxy::instance()->setVoipWebview(this);
 
-    // // 4. Qt调用网页：点击按钮时执行网页的JavaScript函数
-    // connect(btn, &QPushButton::clicked, this, [webView, webInterface]() {
-    //     QString msg = "Hello from Qt!";
-    //     // 发送通知
-    //     webInterface->sendToWeb(msg);
-    // });
+    // Enable developer tools for debugging
+    QWebEngineView *devToolsView = new QWebEngineView;
+    page->setDevToolsPage(devToolsView->page());
+    devToolsView->show();
 }
 
 void VoipWebViewWidget::sendMessageToWeb(const QString &message)
@@ -179,7 +184,8 @@ void VoipWebViewWidget::sendMessageToWeb(const QString &message)
     if (m_webInterface)
     {
         // 使用VoipWebInterface的sendToWeb方法向Web页面发送消息
-        // m_webInterface->sendToWeb(message);
+        qDebug() << "Sending message to web:" << message;
+        m_webInterface->sendToWeb(message);
     }
 }
 

@@ -104,6 +104,8 @@ SOURCES += \
     src/wfc/message/AddGroupMemberNotificationContent.cpp \
     src/wfc/message/CallAddParticipantMessageContent.cpp \
     src/wfc/message/CallStartMessageContent.cpp \
+    src/wfc/message/CallSignalMessageContent.cpp \
+    src/wfc/message/CallAnswerMessageContent.cpp \
     src/wfc/message/ChangeGroupNameNotificationContent.cpp \
     src/wfc/message/ChangeGroupPortraitNotificationContent.cpp \
     src/wfc/message/CreateGroupNotificationContent.cpp \

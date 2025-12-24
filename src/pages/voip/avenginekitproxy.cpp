@@ -308,6 +308,7 @@ void AvEngineKitProxy::setVoipCallStatusCallback(VoipCallStatusCallback callback
 
 void AvEngineKitProxy::emitToVoip(const QString& event, const QJsonObject& args)
 {
+    qDebug() << "emit to voip" << event << args;
     if (m_voipWebview) {
         QJsonObject data;
         data["event"] = event;
@@ -341,6 +342,8 @@ void AvEngineKitProxy::emitToMain(const QString& event, const QJsonObject& args)
 
 void AvEngineKitProxy::onReceiveMessages(const std::list<WFCLib::Message>& messages, bool hasMore)
 {
+    qDebug() << "onReceiveMessages ...............";
+
     for (const WFCLib::Message& msg : messages) {
         if (isExpiredMessage(msg)) {
             qDebug() << "expired msg, ignore";
@@ -349,6 +352,7 @@ void AvEngineKitProxy::onReceiveMessages(const std::list<WFCLib::Message>& messa
 
         if (isVoipMessage(msg.content->getPrototype()->getType())) {
             handleVoipMessage(msg);
+            qDebug() << "onReceiveMessages voip message ...............";
         }
     }
 }
@@ -494,7 +498,36 @@ void AvEngineKitProxy::handleVoipMessage(const WFCLib::Message& msg)
         QJsonObject contentJson;
         contentJson["type"] = contentType;
         // 这里需要根据具体的消息内容类型来序列化内容
-        msgJson["content"] = contentJson;
+        if(contentType == WFCLib::VOIP_CONTENT_TYPE_START) {
+            auto content = static_cast<WFCLib::CallStartMessageContent *>(msg.content);
+            if (content) {
+                contentJson["callId"] = QString::fromStdString(content->callId);
+                contentJson["audioOnly"] = content->audioOnly;
+                // contentJson["pin"] = QString::fromStdString(content->pin);
+            }
+        // } else if (contentType == WFCLib::VOIP_CONTENT_TYPE_END) {
+        //     auto content = static_cast<WFCLib::CallEndMessageContent *>(msg.content);
+        //     if (content) {
+        //         contentJson["callId"] = QString::fromStdString(content->callId);
+        //         contentJson["reason"] = content->reason;
+        //         contentJson["inviteMessageUid"] = QString::number(content->inviteMessageUid);
+        //     }
+
+        }else if(contentType == WFCLib::VOIP_CONTENT_TYPE_ACCEPT){
+            auto content = static_cast<WFCLib::CallAnswerMessageContent *>(msg.content);
+            if (content) {
+                contentJson["callId"] = QString::fromStdString(content->callId);
+                contentJson["audioOnly"] = content->audioOnly;
+                contentJson["inviteMessageUid"] = QString::number(content->inviteMessageUid);
+            }
+        }else if(contentType == WFCLib::VOIP_CONTENT_TYPE_SIGNAL){
+            auto content = static_cast<WFCLib::CallSignalMessageContent *>(msg.content);
+            if (content) {
+                contentJson["callId"] = QString::fromStdString(content->callId);
+                contentJson["payload"] = QString::fromStdString(content->signalPayload);
+            }
+        }
+        msgJson["messageContent"] = contentJson;
 
         msgJson["selfUserInfo"] = QJsonObject{
             {"uid", QString::fromStdString(selfUserInfo.uid)},
