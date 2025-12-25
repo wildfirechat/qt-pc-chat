@@ -327,6 +327,7 @@ void AvEngineKitProxy::emitToVoip(const QString& event, const QJsonObject& args)
         });
     } else if (!m_queueEvents.isEmpty() || event != "startCall") {
         // 将事件加入队列
+        qDebug() << "queue voip event" << event;
         QueuedEvent queuedEvent;
         queuedEvent.event = event;
         queuedEvent.args = args;
@@ -503,7 +504,24 @@ void AvEngineKitProxy::handleVoipMessage(const WFCLib::Message& msg)
             if (content) {
                 contentJson["callId"] = QString::fromStdString(content->callId);
                 contentJson["audioOnly"] = content->audioOnly;
-                // contentJson["pin"] = QString::fromStdString(content->pin);
+
+                QJsonArray targetIdsArray;
+                for (const auto& targetId : content->targetIds) {
+                    QString _targetId = QString::fromStdString(targetId);
+                    targetIdsArray.append(_targetId);
+
+                    m_participants.append(QString::fromStdString(msg.from));
+                    if (_targetId != QString::fromStdString(selfUserInfo.uid)) {
+                        m_participants.append(_targetId);
+                    }
+                }
+                contentJson["targetIds"] = targetIdsArray;
+                contentJson["connectTime"] = QString::number(content->connectTime);
+                contentJson["endTime"] = QString::number(content->endTime);
+                contentJson["status"] = content->status;
+
+                contentJson["pin"] = QString::fromStdString(content->pin);
+                contentJson["sdkType"] = content->sdkType;
             }
         // } else if (contentType == WFCLib::VOIP_CONTENT_TYPE_END) {
         //     auto content = static_cast<WFCLib::CallEndMessageContent *>(msg.content);

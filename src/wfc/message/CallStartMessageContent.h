@@ -19,14 +19,14 @@ class CallStartMessageContent : public MessageContent
 public:
     CallStartMessageContent() : connectTime(0), endTime(0), status(0), audioOnly(false) {}
     virtual ~CallStartMessageContent() {}
-    
+
     virtual MessagePayload encode() const;
     virtual void decode(const MessagePayload &payload);
-    
+
     virtual MessageContent* clone() const;
     virtual std::string digest(const Message &message) const;
     virtual const MessageContentPrototype* getPrototype() const;
-    
+
 public:
     std::string callId;
     std::list<std::string> targetIds;
@@ -46,7 +46,11 @@ public:
      */
     int status;
     bool audioOnly;
-    
+    std::string pin;
+
+    //  0，未知；1，多人版音视频；2，高级版音视频
+    int sdkType = 0;
+
     const static CallStartMessageContentPrototype sPrototype;
 };
 

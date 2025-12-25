@@ -18,28 +18,31 @@ MessagePayload CallStartMessageContent::encode() const
     payload.content = callId;
 
     JsonBuilder builder;
-    
+
     builder.setValue("c", connectTime);
     builder.setValue("e", endTime);
     builder.setValue("s", status);
     builder.setValue("ts", targetIds);
     builder.setValue("a", audioOnly?1:0);
-    
+    builder.setValue("p", pin);
+    builder.setValue("ty", sdkType);
+
     payload.binaryContent = builder.build();
-    
+
     return payload;
 }
 
 void CallStartMessageContent::decode(const MessagePayload & payload)
 {
     MessageContent::decode(payload);
-    
+    callId = payload.content;
+
     JsonParser parser(payload.binaryContent);
-    
+
     if (!parser.isParsed()) {
         return;
     }
-    
+
     parser.getValue("c", connectTime);
     parser.getValue("e", endTime);
     parser.getValue("s", status);
@@ -47,6 +50,8 @@ void CallStartMessageContent::decode(const MessagePayload & payload)
     int audio = 0;
     parser.getValue("a", audio);
     audioOnly = audio>0;
+    parser.getValue("p", pin);
+    parser.getValue("ty", sdkType);
 }
 
 MessageContent* CallStartMessageContent::clone() const {
