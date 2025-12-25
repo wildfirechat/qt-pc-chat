@@ -27,7 +27,7 @@ public:
 };
 
 class CallSignalMessageContentPrototype : public MessageContentPrototype {
-    virtual MessageContentPersistFlag getFlag() const { return PersistFlag_PERSIST_AND_COUNT; }
+    virtual MessageContentPersistFlag getFlag() const { return PersistFlag_TRANSPARENT; }
     virtual MessageContentType getType() const { return VOIP_CONTENT_TYPE_SIGNAL; }
     virtual MessageContent *productEmptyContent() const { return new CallSignalMessageContent(); }
 };

@@ -19,24 +19,24 @@ class CallByeMessageContent : public MessageContent
 public:
     CallByeMessageContent() : reason(0), inviteMessageUid(0) {}
     virtual ~CallByeMessageContent() {}
-    
+
     virtual MessagePayload encode() const;
     virtual void decode(const MessagePayload &payload);
-    
+
     virtual MessageContent* clone() const;
     virtual std::string digest(const Message &message) const;
     virtual const MessageContentPrototype* getPrototype() const;
-    
+
 public:
     std::string callId;
     int reason;
     int64_t inviteMessageUid;
-    
+
     const static CallByeMessageContentPrototype sPrototype;
 };
 
 class CallByeMessageContentPrototype : public MessageContentPrototype {
-    virtual MessageContentPersistFlag getFlag() const { return PersistFlag_PERSIST_AND_COUNT; }
+    virtual MessageContentPersistFlag getFlag() const { return PersistFlag_NOT_PERSIST; }
     virtual MessageContentType getType() const { return VOIP_CONTENT_TYPE_END; }
     virtual MessageContent *productEmptyContent() const { return new CallByeMessageContent(); }
 };
