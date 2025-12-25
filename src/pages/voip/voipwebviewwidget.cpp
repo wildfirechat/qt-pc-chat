@@ -158,10 +158,10 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     // 注册到AvEngineKitProxy
     AvEngineKitProxy::instance()->setVoipWebview(this);
 
-    // Enable developer tools for debugging
-    QWebEngineView *devToolsView = new QWebEngineView;
-    page->setDevToolsPage(devToolsView->page());
-    devToolsView->show();
+    // 调试用，打开开发者工具
+    // QWebEngineView *devToolsView = new QWebEngineView;
+    // page->setDevToolsPage(devToolsView->page());
+    // devToolsView->show();
 
     connect(m_webView->page(), &QWebEnginePage::windowCloseRequested, this, &VoipWebViewWidget::close);
 }
