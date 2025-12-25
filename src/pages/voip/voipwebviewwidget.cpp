@@ -86,19 +86,6 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
         }
     });
 
-
-    // 正确的 Qt 5.15 连接方式
-    // connect(m_webView->page(), &WfQWebEnginePage::javaScriptConsoleMessage,
-    //         [](JavaScriptConsoleMessageLevel level, const QString &message,
-    //            int lineNumber, const QString &sourceID)
-    //         {
-    //             qDebug() << "JS Console:" << message << "at" << sourceID << ":" << lineNumber;
-    //         });
-    // 创建 DevTools 页面
-    // QWebEngineView *devToolsView = new QWebEngineView;
-    // m_webView->page()->setDevToolsPage(devToolsView->page());
-    // devToolsView->show(); // 或嵌入到你的布局
-
     // 将webView添加到布局
     layout->addWidget(m_webView);
 
@@ -113,8 +100,9 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
 
     // QString voipBaseUrl = "https://custom.wildfirechat.cn/wfim_deploy_cookbook/pages/test.html";
     // QString voipBaseUrl = "qrc:/voip_web/index.html";
-    QString voipBaseUrl = "http://localhost:8082";
-    // QString voipBaseUrl = "https://static.wildfirechat.cn/voip-conf-20250915-2.html";
+    // QString voipBaseUrl = "http://localhost:8082";
+    QString voipBaseUrl = "https://static.wildfirechat.cn/voip-qt-multi-1766643623.html";
+    //QString voipBaseUrl = "https://static.wildfirechat.cn/voip-qt-conference-1766643494.html";
 
     QString authToken = settings.value("WFC_APPSERVER_AUTH_TOKEN").toString();
     QString clientId = QString(WFCLib::ChatClient::Instance()->getClientId().c_str());
