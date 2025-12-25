@@ -102,10 +102,6 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     // 将webView添加到布局
     layout->addWidget(m_webView);
 
-    // 创建按钮（用于Qt主动调用网页）
-    QPushButton *btn = new QPushButton("向网页发送消息", this);
-    layout->addWidget(btn);
-
     // 3. 配置WebChannel
     QWebChannel *channel = new QWebChannel(this);
     QList<QString> receivers;
@@ -178,6 +174,8 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     QWebEngineView *devToolsView = new QWebEngineView;
     page->setDevToolsPage(devToolsView->page());
     devToolsView->show();
+
+    connect(m_webView->page(), &QWebEnginePage::windowCloseRequested, this, &VoipWebViewWidget::close);
 }
 
 void VoipWebViewWidget::sendMessageToWeb(const QString &message)

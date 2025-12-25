@@ -106,6 +106,7 @@ SOURCES += \
     src/wfc/message/CallStartMessageContent.cpp \
     src/wfc/message/CallSignalMessageContent.cpp \
     src/wfc/message/CallAnswerMessageContent.cpp \
+    src/wfc/message/CallByeMessageContent.cpp \
     src/wfc/message/ChangeGroupNameNotificationContent.cpp \
     src/wfc/message/ChangeGroupPortraitNotificationContent.cpp \
     src/wfc/message/CreateGroupNotificationContent.cpp \
@@ -347,6 +348,9 @@ HEADERS += \
     src/wfc/message/AddGroupMemberNotificationContent.h \
     src/wfc/message/CallAddParticipantMessageContent.h \
     src/wfc/message/CallStartMessageContent.h \
+    src/wfc/message/CallSignalMessageContent.h \
+    src/wfc/message/CallAnswerMessageContent.h \
+    src/wfc/message/CallByeMessageContent.h \
     src/wfc/message/ChangeGroupNameNotificationContent.h \
     src/wfc/message/ChangeGroupPortraitNotificationContent.h \
     src/wfc/message/CreateGroupNotificationContent.h \

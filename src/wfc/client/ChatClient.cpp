@@ -486,6 +486,7 @@ ChatClient::ChatClient()
     registerMessage(&CallStartMessageContent::sPrototype);
     registerMessage(&CallSignalMessageContent::sPrototype);
     registerMessage(&CallAnswerMessageContent::sPrototype);
+    registerMessage(&CallByeMessageContent::sPrototype);
     registerMessage(&AddGroupMemberNotificationContent::sPrototype);
     registerMessage(&CallAddParticipantMessageContent::sPrototype);
     registerMessage(&RejectJoinGroupNotificationContent::sPrototype);

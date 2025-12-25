@@ -353,7 +353,7 @@ void AvEngineKitProxy::onReceiveMessages(const std::list<WFCLib::Message>& messa
 
         if (isVoipMessage(msg.content->getPrototype()->getType())) {
             handleVoipMessage(msg);
-            qDebug() << "onReceiveMessages voip message ...............";
+            qDebug() << "onReceiveMessages voip message ..............." << msg.content->getPrototype()->getType();
         }
     }
 }
@@ -523,13 +523,13 @@ void AvEngineKitProxy::handleVoipMessage(const WFCLib::Message& msg)
                 contentJson["pin"] = QString::fromStdString(content->pin);
                 contentJson["sdkType"] = content->sdkType;
             }
-        // } else if (contentType == WFCLib::VOIP_CONTENT_TYPE_END) {
-        //     auto content = static_cast<WFCLib::CallEndMessageContent *>(msg.content);
-        //     if (content) {
-        //         contentJson["callId"] = QString::fromStdString(content->callId);
-        //         contentJson["reason"] = content->reason;
-        //         contentJson["inviteMessageUid"] = QString::number(content->inviteMessageUid);
-        //     }
+        } else if (contentType == WFCLib::VOIP_CONTENT_TYPE_END) {
+            auto content = static_cast<WFCLib::CallByeMessageContent *>(msg.content);
+            if (content) {
+                contentJson["callId"] = QString::fromStdString(content->callId);
+                contentJson["reason"] = content->reason;
+                contentJson["inviteMessageUid"] = QString::number(content->inviteMessageUid);
+            }
 
         }else if(contentType == WFCLib::VOIP_CONTENT_TYPE_ACCEPT){
             auto content = static_cast<WFCLib::CallAnswerMessageContent *>(msg.content);
