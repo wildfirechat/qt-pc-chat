@@ -78,6 +78,7 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     connect(m_webView->page(), &QWebEnginePage::featurePermissionRequested,
         [=](const QUrl &securityOrigin, QWebEnginePage::Feature feature) {
         if (feature == QWebEnginePage::MediaAudioCapture ||
+            feature == QWebEnginePage::MediaAudioVideoCapture ||
             feature == QWebEnginePage::MediaVideoCapture) {
             // You might want to show a native dialog here to confirm with the user,
             // but for basic functionality, you can just accept.
