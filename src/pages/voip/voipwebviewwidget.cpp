@@ -98,11 +98,10 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
 
     QSettings settings;
 
-    // QString voipBaseUrl = "https://custom.wildfirechat.cn/wfim_deploy_cookbook/pages/test.html";
-    // QString voipBaseUrl = "qrc:/voip_web/index.html";
+    // 如果用高级版的话，这里可以改成加载不同的HTML文件
+    QString voipBaseUrl = "qrc:/voip_web/voip-qt-multi.html";
+    // for debug
     // QString voipBaseUrl = "http://localhost:8082";
-    QString voipBaseUrl = "https://static.wildfirechat.cn/voip-qt-multi-1766643623.html";
-    //QString voipBaseUrl = "https://static.wildfirechat.cn/voip-qt-conference-1766643494.html";
 
     QString authToken = settings.value("WFC_APPSERVER_AUTH_TOKEN").toString();
     QString clientId = QString(WFCLib::ChatClient::Instance()->getClientId().c_str());
@@ -130,8 +129,8 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     voipWebUrl += "&authToken=" + authToken;
 
     // im server info
-    // voipWebUrl += "&server=http://" + QUrl::toPercentEncoding(server);
-    voipWebUrl += "&server=https://wildfirechat.net"; ;
+    // 如果支持 https 的话，也可以配置成 https
+    voipWebUrl += "&server=http://" + QUrl::toPercentEncoding(server);
     voipWebUrl += "&userId=" + userId;
     voipWebUrl += "&token=" + token;
     voipWebUrl += "&clientId=" + clientId;
@@ -147,13 +146,6 @@ VoipWebViewWidget::VoipWebViewWidget(const QString &type, const QJsonObject &opt
     // 加载拼接好的 URL
     qDebug() << "Loading voip web URL:" << voipWebUrl;
     m_webView->load(QUrl(voipWebUrl));
-    // m_webView->load(QUrl(voipBaseUrl));
-
-    //m_webView->load(QUrl("qrc:/voip_web/index.html"));
-    // m_webView->load(QUrl("https://docs.wildfirechat.cn/webrtc/abilitytest/"));
-    // m_webView->load(QUrl("http://192.168.2.101:8080/"));
-    // m_webView->load(QUrl("https://web.wildfirechat.cn/"));
-    // m_webView->load(QUrl("https://static.wildfirechat.cn/voip-conf-20250915-2.html"));
 
     // 注册到AvEngineKitProxy
     AvEngineKitProxy::instance()->setVoipWebview(this);

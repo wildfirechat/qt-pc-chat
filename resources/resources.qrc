@@ -42,5 +42,7 @@
         <file>images/chatbox_scissors.png</file>
         <file>images/loading.gif</file>
         <file>voip_web/index.html</file>
+        <file>voip_web/voip-qt-multi.html</file>
+        <file>voip_web/voip-qt-conference.html</file>
     </qresource>
 </RCC>
